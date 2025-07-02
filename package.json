@@ -1,7 +1,7 @@
 {
   "name": "dokkan-web-scraper",
-  "version": "1.0.1",
-  "description": "",
+  "version": "2.0.0",
+  "description": "Advanced TypeScript web scraper for Dragon Ball Z Dokkan Battle character data",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
@@ -11,23 +11,39 @@
     "build": "tsc",
     "watch": "tsc -w",
     "prestart": "npm run build",
-    "test": "mocha",
-    "run": "npx ts-node index.ts"
+    "test": "mocha --require ts-node/register 'src/**/*.spec.ts'",
+    "test:watch": "npm run test -- --watch",
+    "run": "npx ts-node src/index.ts",
+    "run:optimized": "npx ts-node src/index-optimized.ts",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "clean": "rimraf lib",
+    "prebuild": "npm run clean"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MNprojects/DokkanWebScraper.git"
   },
   "dependencies": {
-    "axios": "^0.27.2",
-    "jsdom": "^20.0.0",
-    "ts-node": "^10.9.1"
+    "axios": "^1.7.0",
+    "jsdom": "^24.0.0",
+    "winston": "^3.13.0",
+    "dotenv": "^16.4.0",
+    "p-limit": "^5.0.0"
   },
   "devDependencies": {
-    "@types/mocha": "^9.1.1",
-    "@types/node": "16.x",
-    "assert": "^2.0.0",
-    "mocha": "^10.0.0",
-    "typescript": "^4.0.0"
+    "@types/jsdom": "^21.1.0",
+    "@types/mocha": "^10.0.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "mocha": "^10.4.0",
+    "rimraf": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

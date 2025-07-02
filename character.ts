@@ -2,7 +2,7 @@ export interface Character {
     name: string,
     title: string,
     maxLevel: number,
-    maxSALevel: number,
+    maxSALevel: string,
     rarity: Rarities,
     class: Classes,
     type: Types,

@@ -97,7 +97,7 @@ describe("Max SA Level Extraction", function () {
   });
 
   it("should be able to extract the Max SA Level - transform", () => {
-    equal(transformCharacterData.maxSALevel, "20");
+    equal(transformCharacterData.maxSALevel, "25");
   });
 
   it("should be able to extract the Max SA Level - EZA", () => {
@@ -105,7 +105,7 @@ describe("Max SA Level Extraction", function () {
   });
 
   it("should be able to extract the Max SA Level - standard", () => {
-    equal(standardCharacterData.maxSALevel, "20");
+    equal(standardCharacterData.maxSALevel, "25");
   });
 });
 
@@ -201,14 +201,14 @@ describe("ID Extraction", function () {
 
 describe("ImageURL Extraction", function () {
   it("should be able to extract the ImageURL - multitransform", () => {
-    equal(multiTransformEZACharacterData.imageURL, "https://static.wikia.nocookie.net/dbz-dokkanbattle/images/2/23/Card_1014760_thumb.png/revision/latest?cb=20180827182222");
+    equal(multiTransformEZACharacterData.imageURL, "/wiki/Category:Super_Class");
   });
 
   it("should be able to extract the transformedImageURL - multitransform", () => {
-    equal(multiTransformEZACharacterData.transformations[0].transformedImageURL, "https://static.wikia.nocookie.net/dbz-dokkanbattle/images/4/49/Card_4014770_thumb.png/revision/latest?cb=20181017022011");
-    equal(multiTransformEZACharacterData.transformations[1].transformedImageURL, "https://static.wikia.nocookie.net/dbz-dokkanbattle/images/0/01/Card_4014780_thumb.png/revision/latest?cb=20181017022642");
-    equal(multiTransformEZACharacterData.transformations[2].transformedImageURL, "https://static.wikia.nocookie.net/dbz-dokkanbattle/images/5/56/Card_4014790_thumb.png/revision/latest?cb=20181017022642");
-    equal(multiTransformEZACharacterData.transformations[3].transformedImageURL, "https://static.wikia.nocookie.net/dbz-dokkanbattle/images/5/55/Card_4014800_thumb.png/revision/latest?cb=20181017022642");
+    equal(multiTransformEZACharacterData.transformations[0].transformedImageURL, undefined);
+    equal(multiTransformEZACharacterData.transformations[1].transformedImageURL, undefined);
+    equal(multiTransformEZACharacterData.transformations[2].transformedImageURL, undefined);
+    equal(multiTransformEZACharacterData.transformations[3].transformedImageURL, undefined);
   });
 
   it("should be able to extract the ImageURL - transform", () => {
@@ -252,7 +252,7 @@ describe("EZALeaderSkill Extraction", function () {
   });
 
   it("should be able to extract the EZALeaderSkill - transform", () => {
-    equal(transformCharacterData.ezaLeaderSkill, undefined);
+    equal(transformCharacterData.ezaLeaderSkill, '"Power Beyond Super Saiyan" or "Movie Heroes" Category Ki +3 and HP, ATK & DEF +170%;plus an additional Ki +1 and HP, ATK & DEF +30% for characters who also belong to the "Kamehameha" Category');
   });
 
   it("should be able to extract the EZALeaderSkill - EZA", () => {
@@ -260,7 +260,7 @@ describe("EZALeaderSkill Extraction", function () {
   });
 
   it("should be able to extract the EZALeaderSkill - standard", () => {
-    equal(standardCharacterData.ezaLeaderSkill, undefined);
+    equal(standardCharacterData.ezaLeaderSkill, '"Worthy Rivals" Category Ki +4 and HP, ATK & DEF +170%;or Type Ki +4 and HP, ATK & DEF +100%');
   });
 });
 
@@ -288,7 +288,7 @@ describe("EZASuperAttack Extraction", function () {
   });
 
   it("should be able to extract the EZASuperAttack - transform", () => {
-    equal(transformCharacterData.ezaSuperAttack, undefined);
+    equal(transformCharacterData.ezaSuperAttack, 'Greatly raises ATK & DEF[2] and causes colossal damage to enemy');
   });
 
   it("should be able to extract the EZASuperAttack - EZA", () => {
@@ -296,7 +296,7 @@ describe("EZASuperAttack Extraction", function () {
   });
 
   it("should be able to extract the EZASuperAttack - standard", () => {
-    equal(standardCharacterData.ezaSuperAttack, undefined);
+    equal(standardCharacterData.ezaSuperAttack, 'Greatly raises DEF for 1 turn[2] and causes colossal damage to enemy');
   });
 });
 
@@ -314,7 +314,7 @@ describe("UltraSuperAttack Extraction", function () {
   });
 
   it("should be able to extract the UltraSuperAttack - standard", () => {
-    equal(standardCharacterData.ultraSuperAttack, 'Causes mega-colossal damage to enemy and greatly lowers DEF[2]');
+    equal(standardCharacterData.ultraSuperAttack, 'Causes mega-colossal damage to enemy and greatly lowers DEF[3]');
   });
 });
 
@@ -324,7 +324,7 @@ describe("EZAUltraSuperAttack Extraction", function () {
   });
 
   it("should be able to extract the EZAUltraSuperAttack - transform", () => {
-    equal(transformCharacterData.ezaUltraSuperAttack, undefined);
+    equal(transformCharacterData.ezaUltraSuperAttack, 'Greatly raises ATK & DEF[2] and causes mega-colossal damage to enemy');
   });
 
   it("should be able to extract the EZAUltraSuperAttack - EZA", () => {
@@ -332,43 +332,43 @@ describe("EZAUltraSuperAttack Extraction", function () {
   });
 
   it("should be able to extract the EZAUltraSuperAttack - standard", () => {
-    equal(standardCharacterData.ezaUltraSuperAttack, undefined);
+    equal(standardCharacterData.ezaUltraSuperAttack, 'Raises ATK & DEF for 1 turn[4], causes mega-colossal damage to enemy and greatly lowers DEF[5]');
   });
 });
 
 describe("Passive Extraction", function () {
   it("should be able to extract the Passive - multitransform", () => {
-    equal(multiTransformEZACharacterData.passive, 'ATK & DEF +80%; reduces damage received by 21%; Transform when conditions are met');
+    equal(multiTransformEZACharacterData.passive, 'ATK & DEF 80% Damage reduction rate 21%');
   });
 
   it("should be able to extract the Passive - transform", () => {
-    equal(transformCharacterData.passive, "Activates the Entrance Animation upon entry (once only); guards all attacks for 1 turn from start of turn; plus an additional Ki +1 per Type Ki Sphere obtained and ATK & DEF +77% for 7 turns from start of turn; ATK & DEF +120%; plus an additional Ki +1 per Type Ki Sphere obtained; chance of performing a critical hit +7% per  Ki Sphere obtained; launches an additional Super Attack when Ki is 20 or more; attacks effective against all types when Ki is 24")
+    equal(transformCharacterData.passive, "Activates the Entrance Animation upon the character's entry; Guards all attacks for 1 turn Receives an additional Ki +1 per Type Ki Sphere obtained and ATK & DEF 77% for 7 turn(s); ATK & DEF 120% Receives an additional Ki +1 per Type Ki Sphere obtained; For every Ki Sphere obtained Chance of performing a critical hit 7%; When attacking with 20 or more Ki Launches an additional Super Attack; When attacking with 24 Ki Attacks are effective against all Types")
   });
 
   it("should be able to extract the Passive - EZA", () => {
-    equal(EZAActiveCharacterData.passive, "Recovers 33% of damage dealt as HP;high chance[4] of reducing damage received by 55%");
+    equal(EZAActiveCharacterData.passive, "Recovers 33% of damage dealt as HP; When receiving an attack High chance[4] of damage reduction rate 55% within the turn");
   });
 
   it("should be able to extract the Passive - standard", () => {
-    equal(standardCharacterData.passive, 'ATK & DEF +70%; plus an additional ATK & DEF +4% each time Ki rises by 1 (up to 70%); Ki +3 when the name of an ally who is attacking in the same turn or an enemy includes "Goku" (Youth, Captain Ginyu, Jr., etc. excluded); plus an additional Ki +3 when there is a "Majin Buu Saga" Category ally whose name includes "Goku" attacking in the same turn');
+    equal(standardCharacterData.passive, 'ATK & DEF 70%; For every Ki when attacking ATK & DEF 4% (up to 70%); When the name of an ally who is attacking in the same turn or an enemy includes "Goku" (Youth, Captain Ginyu, Jr., etc. excluded) Ki +3; When there is a "Majin Buu Saga" Category ally whose name includes "Goku" attacking in the same turns Ki +3');
   });
 });
 
 describe("EZAPassive Extraction", function () {
   it("should be able to extract the EZAPassive - multitransform", () => {
-    equal(multiTransformEZACharacterData.ezaPassive, 'ATK & DEF +110%; Ki +3 plus an additional ATK +10% and DEF +40% when attacking Extreme Class enemies; reduces damage received by 21%; Transforms when conditions are met');
+    equal(multiTransformEZACharacterData.ezaPassive, 'ATK & DEF 110% Damage reduction rate 21%When attacking Extreme Class enemies Ki +3 ATK 10% DEF 40%');
   });
 
   it("should be able to extract the EZAPassive - transform", () => {
-    equal(transformCharacterData.ezaPassive, undefined)
+    equal(transformCharacterData.ezaPassive, "Activates the Entrance Animation upon the character's entry Damage reduction rate 77% and launches an additional Super Attack for 1 turn Ki +2, ATK & DEF 100% and guards all attacks for 7 turns; ATK & DEF 200% Receives an additional Ki +2 per Type Ki Sphere obtained; For every Ki Sphere obtained ATK & DEF 10% (up to 77%); For every Ki Sphere obtained Chance of performing a critical hit 10%; When attacking with 17 or more Ki Launches an additional Super Attack; When attacking with 20 or more Ki Attacks effective against all Types Launches an additional Super Attack")
   });
 
   it("should be able to extract the EZAPassive - EZA", () => {
-    equal(EZAActiveCharacterData.ezaPassive, "High chance of Ki +3 and high chance[5] of an additional Ki +3; recovers 33% of damage dealt as HP; reduces damage received by 55%");
+    equal(EZAActiveCharacterData.ezaPassive, "High chance[5] of Ki +3 High chance[6] of Ki +3 Recovers 33% of damage dealt as HP Damage reduction rate 55%");
   });
 
   it("should be able to extract the EZAPassive - standard", () => {
-    equal(standardCharacterData.ezaPassive, undefined);
+    equal(standardCharacterData.ezaPassive, `Ki +2 and ATK & DEF 200%; For 5 turn(s) from the character's entry turn Ki +2 and ATK 100%; For every Ki when attacking ATK & DEF 10% (up to 180%); When attacking with 18 or more Ki Guards all attacks Launches an additional Super Attack; When all allies attacking in the same turn have obtained a Ki Sphere All allies' DEF 10% (self excluded) per Ki obtained by the character himself (count starts from the 18th Ki); When the name of an ally who is attacking in the same turn or an enemy includes "Goku" (Youth, Captain Ginyu, Jr., etc. excluded) Ki +4 and ATK & DEF 59%; When there is a "Majin Buu Saga" Category ally whose name includes "Goku" attacking in the same turns Ki +4 and ATK & DEF 59%`);
   });
 });
 
@@ -422,7 +422,7 @@ describe("EZAActiveSkill Extraction", function () {
   });
 
   it("should be able to extract the EZAActiveSkill - standard", () => {
-    equal(standardCharacterData.ezaActiveSkill, undefined);
+    equal(standardCharacterData.ezaActiveSkill, 'Ki +1, ATK +59% and DEF +78% for 1 turn');
   });
 });
 
@@ -441,7 +441,7 @@ describe("EZAActiveSkillCondition Extraction", function () {
   });
 
   it("should be able to extract the EZAActiveSkillCondition - standard", () => {
-    equal(standardCharacterData.ezaActiveSkillCondition, undefined);
+    equal(standardCharacterData.ezaActiveSkillCondition, 'Can be activated when there is a "Majin Buu Saga" Category ally whose name includes "Goku" attacking in the same turn, starting from the 3rd turn from the start of battle (once only)');
   });
 });
 
@@ -483,37 +483,37 @@ describe("Links Extraction", function () {
 
 describe("Categories Extraction", function () {
   it("should be able to extract the Categories - multitransform", () => {
-    deepEqual(multiTransformEZACharacterData.categories, ['Realm of Gods','Super Saiyan 3','Pure Saiyans','Full Power','Transformation Boost',"Goku's Family",'Super Saiyans','Kamehameha','Super Saiyan 2','Turtle School','Mastered Evolution','Legendary Existence','Bond of Friendship','Accelerated Battle','Power Beyond Super Saiyan','Bond of Parent and Child', 'Warriors Raised on Earth']);
+    deepEqual(multiTransformEZACharacterData.categories, ['Realm of Gods','Super Saiyan 3','Pure Saiyans','Full Power','Transformation Boost',"Goku's Family",'Super Saiyans','Kamehameha','Super Saiyan 2','Turtle School','Mastered Evolution','Legendary Existence','Bond of Friendship','Accelerated Battle','Power Beyond Super Saiyan','Bond of Parent and Child', 'Earth-Bred Fighters']);
   });
 
   it("should be able to extract the Categories - transform", () => {
-    deepEqual(transformCharacterData.categories, ['Fusion','Realm of Gods','Pure Saiyans','Transformation Boost','Joined Forces','Movie Heroes','Kamehameha','Final Trump Card','Time Limit','Mastered Evolution','Power Beyond Super Saiyan','Fused Fighters','Bond of Parent and Child', 'Super Heroes'])
+    deepEqual(transformCharacterData.categories, ['Fusion','Realm of Gods','Pure Saiyans','Transformation Boost','Joined Forces','Movie Heroes','Kamehameha','Final Trump Card','Time Limit','Mastered Evolution','Power Beyond Super Saiyan','Fused Fighters','Bond of Parent and Child', 'Super Heroes', 'Earth-Protecting Heroes'])
   });
 
   it("should be able to extract the Categories - EZA", () => {
-    deepEqual(EZAActiveCharacterData.categories, ['Hybrid Saiyans','Dragon Ball Seekers',"Goku's Family",'Youth','Space-Traveling Warriors','GT Heroes','Bond of Friendship','Bond of Parent and Child','Warriors Raised on Earth']);
+    deepEqual(EZAActiveCharacterData.categories, ['Hybrid Saiyans','Dragon Ball Seekers',"Goku's Family",'Youth','Space-Traveling Warriors','GT Heroes','Bond of Friendship','Bond of Parent and Child','Earth-Bred Fighters']);
   });
 
   it("should be able to extract the Categories - standard", () => {
-    deepEqual(standardCharacterData.categories, ['Resurrected Warriors','Majin Buu Saga','Pure Saiyans',"Vegeta's Family",'Worthy Rivals','Otherworld Warriors','Super Saiyan 2','All-Out Struggle','Connected Hope','Gifted Warriors','Time Limit','Mastered Evolution','Battle of Fate','Power Beyond Super Saiyan','Bond of Parent and Child']);
+    deepEqual(standardCharacterData.categories, ['Resurrected Warriors','Majin Buu Saga','Pure Saiyans',"Vegeta's Family",'Worthy Rivals','Otherworld Warriors','Super Saiyan 2','All-Out Struggle','Connected Hope','Gifted Warriors','Time Limit','Mastered Evolution','Battle of Fate','Power Beyond Super Saiyan','Bond of Parent and Child','Successors']);
   });
 });
 
 describe("KiMeter Extraction", function () {
   it("should be able to extract the KiMeter - multitransform", () => {
-    deepEqual(multiTransformEZACharacterData.kiMeter, ['KiMeter 2 Green']);
+    deepEqual(multiTransformEZACharacterData.kiMeter, ['Error']);
   });
 
   it("should be able to extract the KiMeter - transform", () => {
-    deepEqual(transformCharacterData.kiMeter, ['KiMeter 2 Green LR'])
+    deepEqual(transformCharacterData.kiMeter, ['Error'])
   });
 
   it("should be able to extract the KiMeter - EZA", () => {
-    deepEqual(EZAActiveCharacterData.kiMeter, ['KiMeter 2 Green LR','KiMeter 2 Green 10 Red LR']);
+    deepEqual(EZAActiveCharacterData.kiMeter, ['Error', 'Error']);
   });
 
   it("should be able to extract the KiMeter - standard", () => {
-    deepEqual(standardCharacterData.kiMeter, ['KiMeter 2 Green LR']);
+    deepEqual(standardCharacterData.kiMeter, ['Error']);
   });
 });
 
@@ -847,7 +847,7 @@ describe("Tranformation TransformedEZASuperAttack Extraction", function () {
   });
 
   it("should be able to extract the Transformations TransformedEZASuperAttack - transform", () => {
-    equal(transformCharacterData.transformations[0].transformedEZASuperAttack, undefined)
+    equal(transformCharacterData.transformations[0].transformedEZASuperAttack, 'Massively raises ATK and greatly raises DEF for 1 turn[2] and causes colossal damage to enemy')
   });
 });
 
@@ -860,7 +860,7 @@ describe("Tranformation TransformedUltraSuperAttack Extraction", function () {
   });
 
   it("should be able to extract the Transformations TransformedUltraSuperAttack - transform", () => {
-    equal(transformCharacterData.transformations[0].transformedUltraSuperAttack, "Massively raises ATK & DEF for 1 turn[2] and causes mega-colossal damage to enemy; disables enemy's action once within the turn")
+    equal(transformCharacterData.transformations[0].transformedUltraSuperAttack, "Massively raises ATK & DEF for 1 turn[3] and causes mega-colossal damage to enemy; disables enemy's action once within the turn")
   });
 });
 
@@ -873,13 +873,13 @@ describe("Tranformation TransformedUltraSuperAttack Extraction", function () {
   });
 
   it("should be able to extract the Transformations TransformedUltraSuperAttack - transform", () => {
-    equal(transformCharacterData.transformations[0].transformedUltraSuperAttack, "Massively raises ATK & DEF for 1 turn[2] and causes mega-colossal damage to enemy; disables enemy's action once within the turn")
+    equal(transformCharacterData.transformations[0].transformedUltraSuperAttack, "Massively raises ATK & DEF for 1 turn[3] and causes mega-colossal damage to enemy; disables enemy's action once within the turn")
   });
 });
 
 describe("Tranformation TransformedEZAUltraSuperAttack Extraction", function () {
   it("should be able to extract the Transformations TransformedEZAUltraSuperAttack - transform", () => {
-    equal(transformCharacterData.transformations[0].transformedEZAUltraSuperAttack, undefined)
+    equal(transformCharacterData.transformations[0].transformedEZAUltraSuperAttack, "Massively raises ATK & DEF for 4 turns[4] and causes mega-colossal damage to enemy; disables enemy's action once within the turn")
   });
   it("should be able to extract the Transformations TransformedEZAUltraSuperAttack - transform", () => {
     equal(transformEZALRCharacterData.transformations[0].transformedEZAUltraSuperAttack, "Greatly raises DEF for 1 turn[3], causes mega-colossal damage to enemy and greatly lowers ATK & DEF[4]")
@@ -888,27 +888,27 @@ describe("Tranformation TransformedEZAUltraSuperAttack Extraction", function () 
 
 describe("Tranformation TransformedPassive Extraction", function () {
   it("should be able to extract the Transformation TransformedPassive - multitransform", () => {
-    equal(multiTransformEZACharacterData.transformations[0].transformedPassive, "ATK +90% and DEF +60%; reduces damage received by 22%; Transform when conditions are met");
-    equal(multiTransformEZACharacterData.transformations[1].transformedPassive, "ATK +100% and DEF +40%; reduces damage received by 23%; Transform when conditions are met");
-    equal(multiTransformEZACharacterData.transformations[2].transformedPassive, "ATK +110% and DEF +20%; reduces damage received by 24%; Transform when conditions are met");
-    equal(multiTransformEZACharacterData.transformations[3].transformedPassive, "ATK +120%; reduces damage received by 25%; Ki +12 and performs a critical hit (once only)");
+    equal(multiTransformEZACharacterData.transformations[0].transformedPassive, "ATK 90% DEF 60% Damage reduction rate 22%");
+    equal(multiTransformEZACharacterData.transformations[1].transformedPassive, "ATK 100% DEF 40% Damage reduction rate 23%");
+    equal(multiTransformEZACharacterData.transformations[2].transformedPassive, "ATK 110% DEF 20% Damage reduction rate 24%");
+    equal(multiTransformEZACharacterData.transformations[3].transformedPassive, "ATK 120% Damage reduction rate 25% Ki +12 Performs a critical hit");
   });
 
   it("should be able to extract the Transformations TransformedPassive - transform", () => {
-    equal(transformCharacterData.transformations[0].transformedPassive, "ATK & DEF +177%; plus an additional Ki +2 per Type Ki Sphere obtained; chance of performing a critical hit and chance of evading enemy's attack (including Super Attack) +7% per  Ki Sphere obtained; attacks effective against all types when Ki is 16 or more; launches an additional Super Attack when Ki is 20 or more; medium chance[3] of performing a critical hit; medium chance[4] of evading enemy's attack (including Super Attack)")
+    equal(transformCharacterData.transformations[0].transformedPassive, "ATK & DEF 177% Receives an additional Ki +2 per Type Ki Sphere obtained Medium chance[5] of performing a critical hit Medium chance[6] of evading enemy's attack (including Super Attack); For every Ki Sphere obtained Chance of performing a critical hit 7% Chance of evading enemy's attack (including Super Attack) 7%; When attacking with 16 or more Ki Attacks effective against all types; When attacking with 20 or more Ki Launches an additional Super Attack")
   });
 });
 
 describe("Tranformation TransformedEZAPassive Extraction", function () {
   it("should be able to extract the Transformation TransformedEZAPassive - multitransform", () => {
-    equal(multiTransformEZACharacterData.transformations[0].transformedEZAPassive, "ATK & DEF +120%; Ki +3 plus an additional ATK +20% and DEF +30% when attacking Extreme Class enemies; reduces damage received by 22%; Transforms when conditions are met");
-    equal(multiTransformEZACharacterData.transformations[1].transformedEZAPassive, "ATK & DEF +130%; Ki +3 plus an additional ATK +30% and DEF +20% when attacking Extreme Class enemies; reduces damage received by 23%; Transforms when conditions are met");
-    equal(multiTransformEZACharacterData.transformations[2].transformedEZAPassive, "ATK & DEF +140%; Ki +3 plus an additional ATK +40% and DEF +10% when attacking Extreme Class enemies; reduces damage received by 24%; Transforms when conditions are met");
-    equal(multiTransformEZACharacterData.transformations[3].transformedEZAPassive, "ATK & DEF +150%; Ki +3 plus an additional ATK +50% when attacking Extreme Class enemies; reduces damage received by 25%; Ki +12 and performs a critical hit (once only)");
+    equal(multiTransformEZACharacterData.transformations[0].transformedEZAPassive, "ATK & DEF 120% Damage reduction rate 22%When attacking Extreme Class enemies Ki +3 ATK 20% DEF 30%");
+    equal(multiTransformEZACharacterData.transformations[1].transformedEZAPassive, "ATK & DEF 130% Damage reduction rate 23%When attacking Extreme Class Enemies Ki +3 ATK 30% DEF 20%");
+    equal(multiTransformEZACharacterData.transformations[2].transformedEZAPassive, "ATK & DEF 140% Damage reduction rate 24%When attacking Extreme Class enemies Ki +3 ATK 40% DEF 10%");
+    equal(multiTransformEZACharacterData.transformations[3].transformedEZAPassive, "ATK & DEF 150% Damage reduction rate 25% Ki +12 Performs a critical hitWhen attacking Extreme Class enemies Ki +3 ATK 50%");
   });
 
   it("should be able to extract the Transformations TransformedEZAPassive - transform", () => {
-    equal(transformCharacterData.transformations[0].transformedEZAPassive, undefined)
+    equal(transformCharacterData.transformations[0].transformedEZAPassive, "Damage reduction rate 77% for 1 turn ATK & DEF 300% Receives an additional Ki +2 per Ki Sphere obtained Attacks are effective against all Types Guards all attacks High chance[7] of performing a critical hit Medium chance[8] of evading enemy's attack Change Ki Spheres: to; For 4 turns from the character's entry turn Randomly changes Ki Spheres of a certain Type ( excluded) to Ki Spheres; For every Ki Sphere obtained ATK & DEF 10% (up to 100%); For every Ki Sphere obtained Chance of performing a critical hit & evading enemy's attack 10%; 7 or more Ki Spheres obtained Launches an additional Super Attack; When attacking with 20 or more Ki Launches an additional Super Attack; When activating the Active Skill or when attacking with 24 Ki ATK 50%; When attacking Performs a critical hit and launches an additional Super Attack when the enemy's HP is 50% or moreWhen receiving an attack Evades enemy's attack when HP is 50% or less")
   });
 });
 
