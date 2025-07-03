@@ -26,6 +26,8 @@ npm run setup-db        # Create database schema
 npm run import-db latest # Import latest JSON to MySQL
 ```
 
+**Note**: Uses modern Node.js ESM loader syntax (Node.js 18+). The deprecated `--experimental-loader` has been replaced with `--import` syntax.
+
 Output files are saved to `./data/{YYYYMMDD}DokkanCharacterData.json`
 
 ## Optional MySQL Integration
