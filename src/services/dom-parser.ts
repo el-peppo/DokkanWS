@@ -42,33 +42,30 @@ export class DOMParser {
             if (!categoryName) return [];
 
             // Look for alphabetical pagination links that Fandom uses
-            const nextLinks = Array.from(document.querySelectorAll('a'))
-                .filter(link => {
-                    const text = link.textContent?.trim() || '';
-                    const href = link.getAttribute('href') || '';
+            const allLinks = Array.from(document.querySelectorAll('a'));
+            await logger.debug(`Found ${allLinks.length} total links on page`);
+            
+            const candidateLinks: Array<{text: string, href: string}> = [];
+            
+            // Look for all potential pagination links
+            for (const link of allLinks) {
+                const text = link.textContent?.trim() || '';
+                const href = link.getAttribute('href') || '';
+                
+                // Collect all category links with "from" parameter for debugging
+                if (href.includes(`Category:${categoryName}`) && href.includes('from=')) {
+                    candidateLinks.push({text, href});
                     
-                    // Must be a category link with "from" parameter
-                    if (!href.includes(`Category:${categoryName}`) || !href.includes('from=')) {
-                        return false;
+                    // Accept any link with "from" parameter to this category
+                    if (!paginationUrls.includes(href)) {
+                        paginationUrls.push(href);
                     }
-                    
-                    // Fandom uses alphabetical navigation (A, B, C, etc.) and some special cases
-                    return (
-                        /^[A-Z]$/.test(text) ||              // Single letters A-Z
-                        /^[0-9]$/.test(text) ||              // Single digits 0-9
-                        text === '#' ||                       // Hash/number symbol
-                        text === 'Other' ||                  // "Other" category
-                        text.includes('next') ||             // Traditional next links
-                        text.includes('more') ||             // More items
-                        text.includes('continue')            // Continue links
-                    );
-                });
-
-            for (const link of nextLinks) {
-                const href = link.getAttribute('href');
-                if (href && !paginationUrls.includes(href)) {
-                    paginationUrls.push(href);
                 }
+            }
+            
+            // Debug logging
+            if (candidateLinks.length > 0) {
+                await logger.info(`Found ${candidateLinks.length} pagination candidates for ${categoryName}:`, candidateLinks.slice(0, 5));
             }
 
             // Make URLs absolute and filter out current URL
@@ -76,7 +73,13 @@ export class DOMParser {
                 url.startsWith('http') ? url : `https://dbz-dokkanbattle.fandom.com${url}`
             );
 
-            return absoluteUrls.filter(url => url !== currentUrl);
+            const filteredUrls = absoluteUrls.filter(url => url !== currentUrl);
+            
+            if (filteredUrls.length > 0) {
+                await logger.info(`Extracted ${filteredUrls.length} pagination URLs for ${categoryName}`);
+            }
+
+            return filteredUrls;
             
         } catch (error) {
             await logger.error('Failed to extract pagination URLs:', { currentUrl }, error as Error);

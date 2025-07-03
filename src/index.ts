@@ -3,7 +3,7 @@ import { writeFile } from 'fs/promises';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { DokkanScraper } from './services/scraper.js';
-import { DEFAULT_CONFIG } from './config/scraper.config.js';
+import { DEFAULT_CONFIG, BASE_CATEGORY_URLS, CategoryUrl } from './config/scraper.config.js';
 import { ScrapingResult } from './types/character.js';
 import { logger } from './utils/logger.js';
 
@@ -21,7 +21,7 @@ export class DokkanScraperApp {
     /**
      * Run the complete scraping process
      */
-    async run(): Promise<void> {
+    async run(targetCategory?: CategoryUrl): Promise<void> {
         const startTime = Date.now();
         
         try {
@@ -29,7 +29,23 @@ export class DokkanScraperApp {
             await logger.info('Starting Dokkan character data scraper');
             await logger.info(`Configuration: ${JSON.stringify(DEFAULT_CONFIG, null, 2)}`);
 
-            const result = await this.scraper.scrapeAllCharacters();
+            let result: ScrapingResult;
+            
+            if (targetCategory) {
+                await logger.info(`Scraping single category: ${targetCategory}`);
+                const characters = await this.scraper.scrapeCategoryWithPagination(targetCategory);
+                result = {
+                    characters,
+                    stats: {
+                        totalCharacters: characters.length,
+                        processingTime: Date.now() - startTime,
+                        categoriesProcessed: [targetCategory],
+                        errors: []
+                    }
+                };
+            } else {
+                result = await this.scraper.scrapeAllCharacters();
+            }
             
             const fileName = this.generateFileName();
             await this.saveResults(fileName, result);
@@ -136,10 +152,31 @@ export class DokkanScraperApp {
     }
 }
 
+/**
+ * Parse command line arguments
+ */
+function parseArgs(): { category?: CategoryUrl } {
+    const args = process.argv.slice(2);
+    const categoryIndex = args.findIndex(arg => arg === '--category');
+    
+    if (categoryIndex !== -1 && categoryIndex + 1 < args.length) {
+        const category = args[categoryIndex + 1] as CategoryUrl;
+        if (BASE_CATEGORY_URLS.includes(category)) {
+            return { category };
+        } else {
+            console.error(`Invalid category: ${category}. Valid categories: ${BASE_CATEGORY_URLS.join(', ')}`);
+            process.exit(1);
+        }
+    }
+    
+    return {};
+}
+
 // Self-executing when run directly
 if (import.meta.url === `file://${process.argv[1]}`) {
+    const { category } = parseArgs();
     const app = new DokkanScraperApp();
-    app.run().catch(async (error) => {
+    app.run(category).catch(async (error) => {
         await logger.error('Application failed:', {}, error as Error);
         process.exit(1);
     });
