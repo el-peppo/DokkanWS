@@ -124,6 +124,7 @@ export class DokkanScraper {
         const allCharacters: Character[] = [];
         const processedUrls = new Set<string>();
         const urlsToProcess = [`${DOKKAN_BASE_URL}/wiki/Category:${category}`];
+        let progressInitialized = false;
         
         while (urlsToProcess.length > 0) {
             const currentUrl = urlsToProcess.shift()!;
@@ -153,20 +154,7 @@ export class DokkanScraper {
                 const characterLinks = await DOMParser.extractCharacterLinks(categoryDocument, DOKKAN_BASE_URL);
                 await logger.info(`Found ${characterLinks.length} character links in category ${category} (page: ${currentUrl})`);
 
-                if (characterLinks.length > 0) {
-                    // Initialize progress tracking for first page
-                    if (allCharacters.length === 0) {
-                        await this.scrapingLogger.startScraping(characterLinks.length);
-                    }
-
-                    // Process characters from this page
-                    const pageCharacters = await this.processCharactersBatch(characterLinks);
-                    allCharacters.push(...pageCharacters);
-                    
-                    await this.scrapingLogger.logProgress(category, pageCharacters.length);
-                }
-
-                // Look for pagination URLs to continue processing
+                // Look for pagination URLs to add to queue
                 const paginationUrls = await DOMParser.extractPaginationUrls(categoryDocument, currentUrl);
                 
                 // Add new pagination URLs to the queue
@@ -175,6 +163,23 @@ export class DokkanScraper {
                         urlsToProcess.push(paginationUrl);
                         await logger.info(`Found pagination URL: ${paginationUrl}`);
                     }
+                }
+
+                // Initialize progress tracking once we know the scope
+                if (!progressInitialized && characterLinks.length > 0) {
+                    // Estimate total characters: current page + remaining pages
+                    const estimatedTotal = characterLinks.length * (1 + urlsToProcess.length);
+                    await this.scrapingLogger.startScraping(estimatedTotal);
+                    progressInitialized = true;
+                }
+
+                if (characterLinks.length > 0) {
+                    // Process characters from this page
+                    const pageCharacters = await this.processCharactersBatch(characterLinks);
+                    allCharacters.push(...pageCharacters);
+                    
+                    // Log progress for this page batch
+                    await this.scrapingLogger.logProgress(category, pageCharacters.length);
                 }
 
                 // If no characters found and no pagination, we're done

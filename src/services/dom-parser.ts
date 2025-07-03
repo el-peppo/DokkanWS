@@ -38,54 +38,85 @@ export class DOMParser {
         const paginationUrls: string[] = [];
         
         try {
-            // Method 1: Look for "next" pagination links
-            const nextLinks = Array.from(document.querySelectorAll('a'))
+            const categoryName = currentUrl.split('/Category:')[1]?.split('?')[0];
+            if (!categoryName) return [];
+
+            // Method 1: Fandom alphabetical navigation - look for alphabet links
+            const alphabetLinks = Array.from(document.querySelectorAll('a'))
                 .filter(link => {
-                    const text = link.textContent?.toLowerCase() || '';
-                    return text.includes('next') || text.includes('→') || text.includes('»');
+                    const href = link.getAttribute('href') || '';
+                    const text = link.textContent?.trim() || '';
+                    // Look for single letter links or numeric pagination that belong to this category
+                    return (
+                        href.includes(`Category:${categoryName}`) && 
+                        href.includes('from=') &&
+                        (text.length <= 3 || text.match(/^[A-Z0-9]$/)) // Single letters/numbers
+                    );
                 });
 
-            for (const link of nextLinks) {
+            for (const link of alphabetLinks) {
                 const href = link.getAttribute('href');
-                if (href && href.includes('from=')) {
+                if (href) {
                     paginationUrls.push(href);
                 }
             }
 
-            // Method 2: Look for links with "from=" parameter in the same category
-            const categoryName = currentUrl.split('/Category:')[1]?.split('?')[0];
-            if (categoryName) {
-                const fromLinks = Array.from(document.querySelectorAll('a'))
-                    .filter(link => {
-                        const href = link.getAttribute('href') || '';
-                        return href.includes(`Category:${categoryName}?from=`);
-                    });
+            // Method 2: Look for "next" or continuation pagination links
+            const nextLinks = Array.from(document.querySelectorAll('a'))
+                .filter(link => {
+                    const text = link.textContent?.toLowerCase() || '';
+                    const href = link.getAttribute('href') || '';
+                    return (
+                        href.includes(`Category:${categoryName}`) &&
+                        href.includes('from=') &&
+                        (text.includes('next') || text.includes('→') || text.includes('»'))
+                    );
+                });
 
-                for (const link of fromLinks) {
-                    const href = link.getAttribute('href');
-                    if (href) {
-                        paginationUrls.push(href);
-                    }
+            for (const link of nextLinks) {
+                const href = link.getAttribute('href');
+                if (href) {
+                    paginationUrls.push(href);
                 }
             }
 
-            // Method 3: Check if there are exactly 200 characters (wiki page limit) - indicates more pages
+            // Method 3: Extract all category continuation links with from= parameter
+            const fromLinks = Array.from(document.querySelectorAll('a'))
+                .filter(link => {
+                    const href = link.getAttribute('href') || '';
+                    return href.includes(`Category:${categoryName}?from=`) || 
+                           href.includes(`Category:${categoryName}&from=`);
+                });
+
+            for (const link of fromLinks) {
+                const href = link.getAttribute('href');
+                if (href) {
+                    paginationUrls.push(href);
+                }
+            }
+
+            // Method 4: If page has many characters but is likely incomplete, generate continuation URL
             const characterCount = document.querySelectorAll('.category-page__member-link').length;
-            if (characterCount >= 200) {
-                // Try to find the last character name to build next page URL
-                const lastCharacterLink = document.querySelector('.category-page__member:last-child .category-page__member-link');
-                if (lastCharacterLink) {
-                    const lastCharacterName = lastCharacterLink.textContent?.trim();
-                    if (lastCharacterName && categoryName) {
-                        const encodedName = encodeURIComponent(lastCharacterName.replace(/ /g, '+'));
-                        paginationUrls.push(`/wiki/Category:${categoryName}?from=${encodedName}`);
+            
+            // For large categories like UR, generate alphabet-based pagination
+            if (characterCount >= 50 && categoryName === 'UR') {
+                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('');
+                for (const letter of alphabet) {
+                    const alphabetUrl = `/wiki/Category:${categoryName}?from=${letter}`;
+                    if (!paginationUrls.some(url => url.includes(`from=${letter}`))) {
+                        paginationUrls.push(alphabetUrl);
                     }
                 }
             }
 
             // Remove duplicates and make URLs absolute
             const uniqueUrls = [...new Set(paginationUrls)];
-            return uniqueUrls.map(url => url.startsWith('http') ? url : `https://dbz-dokkanbattle.fandom.com${url}`);
+            const absoluteUrls = uniqueUrls.map(url => 
+                url.startsWith('http') ? url : `https://dbz-dokkanbattle.fandom.com${url}`
+            );
+
+            // Filter out the current URL to avoid infinite loops
+            return absoluteUrls.filter(url => url !== currentUrl);
             
         } catch (error) {
             await logger.error('Failed to extract pagination URLs:', { currentUrl }, error as Error);
