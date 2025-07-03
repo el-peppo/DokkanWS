@@ -18,23 +18,12 @@
       "Bash(timeout:*)",
       "Bash(find:*)",
       "Bash(rg:*)",
-      "Bash(BATCH_SIZE=3 node lib/index.js)",
-      "Bash(git checkout:*)",
-      "Bash(gh pr view:*)",
-      "Bash(npx mocha:*)",
-      "Bash(NODE_ENV=development node test-verbose.js)",
-      "Bash(CORELOG_ENABLED=true NODE_ENV=development node debug-env.js)",
-      "Bash(CORELOG_ENABLED=true CORELOG_REMOTE_HOST=localhost CORELOG_REMOTE_PORT=9999 NODE_ENV=development node test-verbose.js)",
-      "Bash(git merge:*)",
       "WebFetch(domain:dragonball.fandom.com)",
       "WebFetch(domain:dokkan.wiki)",
-      "Bash(sudo apt:*)",
-      "Bash(sudo apt install:*)",
-      "Bash(sudo systemctl start:*)",
-      "Bash(sudo systemctl:*)",
-      "Bash(sudo mysql:*)",
-      "Bash(mv:*)",
-      "Bash(pkill:*)"
+      "Bash(npm test:*)",
+      "Bash(BATCH_SIZE=3 timeout 30 npm run run)",
+      "Bash(npm ls:*)",
+      "Bash(BATCH_SIZE=2 timeout 20 node lib/index.js)"
     ],
     "deny": []
   }
