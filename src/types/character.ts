@@ -61,6 +61,10 @@ export enum Types {
 }
 
 export enum Rarities {
+    N = "N",
+    R = "R",
+    SR = "SR",
+    SSR = "SSR",
     UR = "UR",
     LR = "LR"
 }
