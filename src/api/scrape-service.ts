@@ -113,7 +113,7 @@ export class ScrapeService extends EventEmitter {
             await logger.error('Scraping failed:', {}, error as Error);
             this.emit('scrapeComplete', {
                 success: false,
-                error: error instanceof Error ? error.message : String(error)
+                error: error instanceof Error ? error.message : 'Unknown error occurred'
             });
             throw error;
         } finally {

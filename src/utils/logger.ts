@@ -122,27 +122,38 @@ export class ScrapingLogger {
     private startTime: number = 0;
     private processed: number = 0;
     private total: number = 0;
+    private categoryProgress: Map<string, number> = new Map();
 
     async startScraping(totalCharacters: number): Promise<void> {
-        this.startTime = Date.now();
-        this.total = totalCharacters;
-        this.processed = 0;
-        await logger.info(`Starting scrape of ${totalCharacters} characters`, {
+        // Only initialize on first call
+        if (this.startTime === 0) {
+            this.startTime = Date.now();
+            this.processed = 0;
+            this.categoryProgress.clear();
+        }
+        // Accumulate total from all categories
+        this.total += totalCharacters;
+        await logger.info(`Starting scrape of ${totalCharacters} characters (total: ${this.total})`, {
             total_characters: totalCharacters,
+            cumulative_total: this.total,
             start_time: new Date().toISOString()
         });
     }
 
     async logProgress(category: string, charactersProcessed: number): Promise<void> {
+        // Track per-category progress
+        this.categoryProgress.set(category, charactersProcessed);
         this.processed += charactersProcessed;
+        
         const elapsed = (Date.now() - this.startTime) / 1000;
         const rate = this.processed / elapsed;
-        const eta = this.total > 0 ? (this.total - this.processed) / rate : 0;
-        const progressPercent = (this.processed / this.total * 100).toFixed(1);
+        const remaining = Math.max(0, this.total - this.processed);
+        const eta = rate > 0 ? remaining / rate : 0;
+        const progressPercent = this.total > 0 ? (this.processed / this.total * 100).toFixed(1) : '0.0';
         
         await logger.info(`Category ${category}: ${charactersProcessed} characters processed. ` +
                    `Total: ${this.processed}/${this.total} (${progressPercent}%) ` +
-                   `Rate: ${rate.toFixed(1)}/s ETA: ${eta.toFixed(0)}s`, {
+                   `Rate: ${rate.toFixed(1)}/s ETA: ${eta > 0 ? eta.toFixed(0) : '0'}s`, {
             category,
             characters_processed: charactersProcessed,
             total_processed: this.processed,
@@ -163,6 +174,12 @@ export class ScrapingLogger {
             average_rate: parseFloat(avgRate.toFixed(1)),
             completion_time: new Date().toISOString()
         });
+        
+        // Reset for next run
+        this.startTime = 0;
+        this.processed = 0;
+        this.total = 0;
+        this.categoryProgress.clear();
     }
 
     async logError(url: string, error: Error, retryAttempt: number): Promise<void> {

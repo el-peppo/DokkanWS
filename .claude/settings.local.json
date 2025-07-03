@@ -33,7 +33,8 @@
       "Bash(mysql:*)",
       "Bash(kill:*)",
       "WebFetch(domain:dbz-dokkanbattle.fandom.com)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

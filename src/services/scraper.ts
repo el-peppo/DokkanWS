@@ -33,12 +33,6 @@ export class DokkanScraper {
         // Ensure http client is initialized
         await this.initialize();
 
-        // Ensure http client is initialized
-        await this.initialize();
-
-        // Ensure http client is initialized
-        await this.initialize();
-
         try {
             // Process all categories in parallel
             const categoryPromises = CATEGORY_URLS.map(category => 
@@ -104,6 +98,7 @@ export class DokkanScraper {
                 return [];
             }
 
+            // Initialize progress for this category
             await this.scrapingLogger.startScraping(characterLinks.length);
 
             // Process characters in optimized batches
