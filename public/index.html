@@ -32,6 +32,140 @@
         // Context for managing app state
         const AppContext = createContext();
         
+        // Theme Context
+        const ThemeContext = createContext();
+        
+        // Theme Provider
+        function ThemeProvider({ children }) {
+            const [theme, setTheme] = useState(() => {
+                const saved = localStorage.getItem('dokkan-theme');
+                return saved || 'light';
+            });
+            
+            const toggleTheme = () => {
+                const newTheme = theme === 'light' ? 'dark' : 'light';
+                setTheme(newTheme);
+                localStorage.setItem('dokkan-theme', newTheme);
+            };
+            
+            useEffect(() => {
+                document.documentElement.setAttribute('data-theme', theme);
+            }, [theme]);
+            
+            return React.createElement(ThemeContext.Provider, 
+                { value: { theme, toggleTheme } }, 
+                children
+            );
+        }
+        
+        // Custom hook to use theme
+        function useTheme() {
+            const context = useContext(ThemeContext);
+            if (!context) {
+                throw new Error('useTheme must be used within ThemeProvider');
+            }
+            return context;
+        }
+        
+        // Character comparison hook
+        function useComparison() {
+            const [compareList, setCompareList] = useState([]);
+            const [showComparison, setShowComparison] = useState(false);
+            
+            const addToCompare = (character) => {
+                if (compareList.length < 3 && !compareList.some(c => c.id === character.id)) {
+                    setCompareList(prev => [...prev, character]);
+                }
+            };
+            
+            const removeFromCompare = (characterId) => {
+                setCompareList(prev => prev.filter(c => c.id !== characterId));
+            };
+            
+            const clearCompare = () => {
+                setCompareList([]);
+                setShowComparison(false);
+            };
+            
+            return {
+                compareList,
+                showComparison,
+                setShowComparison,
+                addToCompare,
+                removeFromCompare,
+                clearCompare
+            };
+        }
+        
+        // Team Builder hook
+        function useTeamBuilder() {
+            const [team, setTeam] = useState([]);
+            const [linkingPartners, setLinkingPartners] = useState({});
+            const [allCharacters, setAllCharacters] = useState([]);
+            
+            const addToTeam = (character) => {
+                if (team.length < 6 && !team.some(c => c.id === character.id)) {
+                    setTeam(prev => [...prev, character]);
+                }
+            };
+            
+            const removeFromTeam = (characterId) => {
+                setTeam(prev => prev.filter(c => c.id !== characterId));
+            };
+            
+            const clearTeam = () => {
+                setTeam([]);
+                setLinkingPartners({});
+            };
+            
+            // Find perfect linking partners for a character
+            const findLinkingPartners = async (character) => {
+                if (!character.links || !Array.isArray(character.links)) return [];
+                
+                try {
+                    const response = await fetch(`/api/characters/linking-partners/${character.id}`);
+                    const data = await response.json();
+                    if (data.success) {
+                        return data.data;
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch linking partners:', error);
+                }
+                
+                // Fallback: calculate locally if API fails
+                return allCharacters.filter(partner => {
+                    if (partner.id === character.id) return false;
+                    if (!partner.links || !Array.isArray(partner.links)) return false;
+                    
+                    const sharedLinks = character.links.filter(link => 
+                        partner.links.includes(link)
+                    );
+                    
+                    return sharedLinks.length >= 4; // Perfect linking (4+ shared links)
+                });
+            };
+            
+            const updateLinkingPartners = async (character) => {
+                const partners = await findLinkingPartners(character);
+                setLinkingPartners(prev => ({
+                    ...prev,
+                    [character.id]: partners
+                }));
+            };
+            
+            return {
+                team,
+                linkingPartners,
+                allCharacters,
+                setAllCharacters,
+                addToTeam,
+                removeFromTeam,
+                clearTeam,
+                findLinkingPartners,
+                updateLinkingPartners
+            };
+        }
+        
         // App State Provider
         function AppProvider({ children }) {
             const [characters, setCharacters] = useState([]);
@@ -41,6 +175,9 @@
             const [loading, setLoading] = useState(false);
             const [pagination, setPagination] = useState({});
             const [selectedCharacter, setSelectedCharacter] = useState(null);
+            const [currentView, setCurrentView] = useState('grid'); // 'grid', 'stats', 'compare', 'team'
+            const comparison = useComparison();
+            const teamBuilder = useTeamBuilder();
             
             const searchCharacters = useCallback(async (reset = false, page = 1) => {
                 if (loading) return;
@@ -91,6 +228,13 @@
             }, []);
             
             useEffect(() => {
+                // Load all characters for team builder
+                if (characters.length > 0) {
+                    teamBuilder.setAllCharacters(characters);
+                }
+            }, [characters]);
+            
+            useEffect(() => {
                 searchCharacters(true);
             }, [currentFilters]);
             
@@ -105,7 +249,11 @@
                 selectedCharacter,
                 setSelectedCharacter,
                 searchCharacters,
-                loadStats
+                loadStats,
+                currentView,
+                setCurrentView,
+                ...comparison,
+                ...teamBuilder
             };
             
             return React.createElement(AppContext.Provider, { value }, children);
@@ -213,10 +361,22 @@
         }
         
         // Character Card Component
-        function CharacterCard({ character }) {
-            const { setSelectedCharacter } = useApp();
+        function CharacterCard({ character, showActions = true }) {
+            const { setSelectedCharacter, addToCompare, compareList, addToTeam, team, currentView } = useApp();
             
             const imageUrl = character.image_url && character.image_url !== 'Error' ? character.image_url : null;
+            const isInCompare = compareList.some(c => c.id === character.id);
+            const isInTeam = team.some(c => c.id === character.id);
+            
+            const handleCompareClick = (e) => {
+                e.stopPropagation();
+                addToCompare(character);
+            };
+            
+            const handleTeamClick = (e) => {
+                e.stopPropagation();
+                addToTeam(character);
+            };
             
             return (
                 <div className="character-card" onClick={() => setSelectedCharacter(character)}>
@@ -242,6 +402,27 @@
                             <span className={`badge class-${character.class}`}>{character.class}</span>
                             <span className="badge cost">Cost: {character.cost}</span>
                         </div>
+                        
+                        {showActions && (
+                            <div className="character-actions">
+                                <button 
+                                    className={`compare-btn ${isInCompare ? 'active' : ''}`}
+                                    onClick={handleCompareClick}
+                                    disabled={compareList.length >= 3 && !isInCompare}
+                                    title="Add to comparison"
+                                >
+                                    <i className="fas fa-balance-scale"></i>
+                                </button>
+                                <button 
+                                    className={`team-btn ${isInTeam ? 'active' : ''}`}
+                                    onClick={handleTeamClick}
+                                    disabled={team.length >= 6 && !isInTeam}
+                                    title="Add to team"
+                                >
+                                    <i className="fas fa-users"></i>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             );
@@ -416,49 +597,34 @@
                                 {/* Stats Section */}
                                 <div className="skill-section">
                                     <h4>Stats {awakening !== 'base' && `(${awakening.toUpperCase()})`}</h4>
-                                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem'}}>
-                                        <div style={{
-                                            background: '#f8f9fa',
-                                            padding: '1rem',
-                                            borderRadius: '8px',
-                                            border: '2px solid #e74c3c'
-                                        }}>
-                                            <h5 style={{color: '#e74c3c', marginBottom: '0.5rem', textAlign: 'center'}}>❤️ HP</h5>
-                                            <div style={{fontSize: '0.85rem'}}>
+                                    <div className="stats-grid-modal">
+                                        <div className="stat-box stat-box-hp">
+                                            <h5>❤️ HP</h5>
+                                            <div className="stat-box-content">
                                                 <div>Base: {selectedCharacter.base_hp?.toLocaleString() || 'N/A'}</div>
                                                 <div>Max Lv: {selectedCharacter.max_level_hp?.toLocaleString() || 'N/A'}</div>
                                                 <div>Free Dupe: {selectedCharacter.free_dupe_hp?.toLocaleString() || 'N/A'}</div>
-                                                <div style={{fontWeight: 'bold', color: '#e74c3c'}}>Rainbow: {selectedCharacter.rainbow_hp?.toLocaleString() || 'N/A'}</div>
+                                                <div className="rainbow-stat">Rainbow: {selectedCharacter.rainbow_hp?.toLocaleString() || 'N/A'}</div>
                                             </div>
                                         </div>
                                         
-                                        <div style={{
-                                            background: '#f8f9fa',
-                                            padding: '1rem',
-                                            borderRadius: '8px',
-                                            border: '2px solid #f39c12'
-                                        }}>
-                                            <h5 style={{color: '#f39c12', marginBottom: '0.5rem', textAlign: 'center'}}>⚔️ ATK</h5>
-                                            <div style={{fontSize: '0.85rem'}}>
+                                        <div className="stat-box stat-box-atk">
+                                            <h5>⚔️ ATK</h5>
+                                            <div className="stat-box-content">
                                                 <div>Base: {selectedCharacter.base_attack?.toLocaleString() || 'N/A'}</div>
                                                 <div>Max Lv: {selectedCharacter.max_level_attack?.toLocaleString() || 'N/A'}</div>
                                                 <div>Free Dupe: {selectedCharacter.free_dupe_attack?.toLocaleString() || 'N/A'}</div>
-                                                <div style={{fontWeight: 'bold', color: '#f39c12'}}>Rainbow: {selectedCharacter.rainbow_attack?.toLocaleString() || 'N/A'}</div>
+                                                <div className="rainbow-stat">Rainbow: {selectedCharacter.rainbow_attack?.toLocaleString() || 'N/A'}</div>
                                             </div>
                                         </div>
                                         
-                                        <div style={{
-                                            background: '#f8f9fa',
-                                            padding: '1rem',
-                                            borderRadius: '8px',
-                                            border: '2px solid #3498db'
-                                        }}>
-                                            <h5 style={{color: '#3498db', marginBottom: '0.5rem', textAlign: 'center'}}>🛡️ DEF</h5>
-                                            <div style={{fontSize: '0.85rem'}}>
+                                        <div className="stat-box stat-box-def">
+                                            <h5>🛡️ DEF</h5>
+                                            <div className="stat-box-content">
                                                 <div>Base: {selectedCharacter.base_defence?.toLocaleString() || 'N/A'}</div>
                                                 <div>Max Lv: {selectedCharacter.max_defence?.toLocaleString() || 'N/A'}</div>
                                                 <div>Free Dupe: {selectedCharacter.free_dupe_defence?.toLocaleString() || 'N/A'}</div>
-                                                <div style={{fontWeight: 'bold', color: '#3498db'}}>Rainbow: {selectedCharacter.rainbow_defence?.toLocaleString() || 'N/A'}</div>
+                                                <div className="rainbow-stat">Rainbow: {selectedCharacter.rainbow_defence?.toLocaleString() || 'N/A'}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -534,6 +700,38 @@
                                     );
                                 })()}
                                 
+                                {/* Standby Skills */}
+                                {selectedCharacter.standby_skill && selectedCharacter.standby_skill !== 'Error' && (
+                                    <div className="skill-section">
+                                        <h4>🔄 Standby Skill</h4>
+                                        <p>{selectedCharacter.standby_skill}</p>
+                                        {selectedCharacter.standby_skill_condition && selectedCharacter.standby_skill_condition !== 'Error' && (
+                                            <div style={{marginTop: '0.5rem', padding: '0.5rem', background: '#e8f4f8', borderRadius: '6px', fontSize: '0.9rem'}}>
+                                                <strong>Condition:</strong> {selectedCharacter.standby_skill_condition}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                
+                                {/* Transformation Section */}
+                                {selectedCharacter.transformation && selectedCharacter.transformation.length > 0 && (
+                                    <div className="skill-section">
+                                        <h4>🔄 Transformations</h4>
+                                        <div className="transformation-list">
+                                            {selectedCharacter.transformation.map((transform, index) => (
+                                                <div key={index} className="transformation-item">
+                                                    <h5>Transform {index + 1}: {transform.name}</h5>
+                                                    <div className="transformation-details">
+                                                        {transform.condition && <p><strong>Condition:</strong> {transform.condition}</p>}
+                                                        {transform.passive && <p><strong>Passive:</strong> {transform.passive}</p>}
+                                                        {transform.super_attack && <p><strong>Super Attack:</strong> {transform.super_attack}</p>}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 {selectedCharacter.links && selectedCharacter.links.length > 0 && (
                                     <div className="skill-section">
                                         <h4>Link Skills</h4>
@@ -551,6 +749,7 @@
                                                 </span>
                                             ))}
                                         </div>
+                                        <LinkingPartnersSection character={selectedCharacter} />
                                     </div>
                                 )}
                                 
@@ -580,9 +779,630 @@
             );
         }
         
+        // Linking Partners Section
+        function LinkingPartnersSection({ character }) {
+            const { findLinkingPartners } = useApp();
+            const [partners, setPartners] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [showPartners, setShowPartners] = useState(false);
+            
+            const loadPartners = async () => {
+                setLoading(true);
+                try {
+                    const linkingPartners = await findLinkingPartners(character);
+                    setPartners(linkingPartners.slice(0, 6)); // Show top 6 partners
+                } catch (error) {
+                    console.error('Failed to load linking partners:', error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            
+            const togglePartners = () => {
+                if (!showPartners && partners.length === 0) {
+                    loadPartners();
+                }
+                setShowPartners(!showPartners);
+            };
+            
+            return (
+                <div className="linking-partners-section">
+                    <button 
+                        className="toggle-partners-btn"
+                        onClick={togglePartners}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <i className="fas fa-spinner fa-spin"></i>
+                        ) : (
+                            <i className={`fas fa-chevron-${showPartners ? 'up' : 'down'}`}></i>
+                        )}
+                        Perfect Linking Partners
+                    </button>
+                    
+                    {showPartners && partners.length > 0 && (
+                        <div className="partners-grid">
+                            {partners.map(partner => {
+                                const sharedLinks = character.links.filter(link => 
+                                    partner.links && partner.links.includes(link)
+                                );
+                                
+                                return (
+                                    <div key={partner.id} className="partner-card">
+                                        <div className="partner-info">
+                                            <h6>{partner.name}</h6>
+                                            <p className="partner-title">{partner.title}</p>
+                                            <div className="partner-meta">
+                                                <span className={`badge type-${partner.type}`}>{partner.type}</span>
+                                                <span className={`badge class-${partner.class}`}>{partner.class}</span>
+                                            </div>
+                                        </div>
+                                        <div className="shared-links">
+                                            <span className="shared-count">{sharedLinks.length} shared</span>
+                                            <div className="shared-links-list">
+                                                {sharedLinks.map((link, index) => (
+                                                    <span key={index} className="shared-link">{link}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                    
+                    {showPartners && partners.length === 0 && !loading && (
+                        <p className="no-partners">No perfect linking partners found (4+ shared links)</p>
+                    )}
+                </div>
+            );
+        }
+        
+        // Team Builder Component
+        function TeamBuilder() {
+            const { team, removeFromTeam, clearTeam, linkingPartners, updateLinkingPartners } = useApp();
+            const [teamStats, setTeamStats] = useState(null);
+            const [showLinkingHelp, setShowLinkingHelp] = useState(false);
+            
+            useEffect(() => {
+                if (team.length > 0) {
+                    calculateTeamStats();
+                    // Update linking partners for each team member
+                    team.forEach(member => {
+                        updateLinkingPartners(member);
+                    });
+                }
+            }, [team]);
+            
+            const calculateTeamStats = () => {
+                const totalHp = team.reduce((sum, char) => sum + (char.rainbow_hp || 0), 0);
+                const totalAttack = team.reduce((sum, char) => sum + (char.rainbow_attack || 0), 0);
+                const totalDefence = team.reduce((sum, char) => sum + (char.rainbow_defence || 0), 0);
+                const totalCost = team.reduce((sum, char) => sum + (char.cost || 0), 0);
+                
+                // Calculate type synergy
+                const typeCount = team.reduce((acc, char) => {
+                    acc[char.type] = (acc[char.type] || 0) + 1;
+                    return acc;
+                }, {});
+                
+                // Calculate class synergy
+                const classCount = team.reduce((acc, char) => {
+                    acc[char.class] = (acc[char.class] || 0) + 1;
+                    return acc;
+                }, {});
+                
+                setTeamStats({
+                    totalHp,
+                    totalAttack,
+                    totalDefence,
+                    totalCost,
+                    typeCount,
+                    classCount
+                });
+            };
+            
+            const getTeamSlots = () => {
+                const slots = [];
+                for (let i = 0; i < 6; i++) {
+                    slots.push(team[i] || null);
+                }
+                return slots;
+            };
+            
+            const exportTeam = () => {
+                const teamData = {
+                    timestamp: new Date().toISOString(),
+                    team: team.map(char => ({
+                        name: char.name,
+                        title: char.title,
+                        rarity: char.rarity,
+                        type: char.type,
+                        class: char.class,
+                        links: char.links,
+                        leader_skill: char.leader_skill
+                    })),
+                    stats: teamStats
+                };
+                
+                downloadJSON(teamData, `dokkan_team_${new Date().toISOString().split('T')[0]}.json`);
+            };
+            
+            if (team.length === 0) {
+                return (
+                    <div className="team-builder-empty">
+                        <h3>👥 Team Builder</h3>
+                        <p>Build your perfect Dokkan team with optimized linking partners.</p>
+                        <div className="team-slots">
+                            {Array.from({ length: 6 }, (_, i) => (
+                                <div key={i} className="team-slot empty">
+                                    <i className="fas fa-plus"></i>
+                                    <span>Slot {i + 1}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <p className="team-hint">Add characters from the Characters tab to start building your team.</p>
+                    </div>
+                );
+            }
+            
+            return (
+                <div className="team-builder">
+                    <div className="team-header">
+                        <h3>👥 Team Builder ({team.length}/6)</h3>
+                        <div className="team-actions">
+                            <button 
+                                className="help-btn"
+                                onClick={() => setShowLinkingHelp(!showLinkingHelp)}
+                            >
+                                <i className="fas fa-question-circle"></i>
+                            </button>
+                            <button className="export-btn" onClick={exportTeam}>
+                                <i className="fas fa-download"></i> Export
+                            </button>
+                            <button className="clear-btn" onClick={clearTeam}>
+                                <i className="fas fa-trash"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {showLinkingHelp && (
+                        <div className="linking-help">
+                            <h4>Linking Tips</h4>
+                            <ul>
+                                <li>🔗 <strong>Perfect Link:</strong> 7 shared links (extremely rare)</li>
+                                <li>✨ <strong>Great Link:</strong> 5-6 shared links (very good synergy)</li>
+                                <li>👍 <strong>Good Link:</strong> 4 shared links (decent synergy)</li>
+                                <li>🔄 <strong>Rotation:</strong> Characters in the same rotation fight together</li>
+                                <li>🎆 <strong>Leader:</strong> Leader skill affects the entire team</li>
+                            </ul>
+                        </div>
+                    )}
+                    
+                    <div className="team-grid">
+                        {getTeamSlots().map((character, index) => (
+                            <div key={index} className={`team-slot ${character ? 'filled' : 'empty'}`}>
+                                {character ? (
+                                    <div className="team-character">
+                                        <div className="character-preview">
+                                            {character.image_url && character.image_url !== 'Error' && (
+                                                <img src={character.image_url} alt={character.name} />
+                                            )}
+                                            <div className="character-info">
+                                                <h5>{character.name}</h5>
+                                                <p>{character.title}</p>
+                                                <div className="character-badges">
+                                                    <span className={`badge type-${character.type}`}>{character.type}</span>
+                                                    <span className={`badge class-${character.class}`}>{character.class}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="team-character-actions">
+                                            <button 
+                                                className="remove-btn"
+                                                onClick={() => removeFromTeam(character.id)}
+                                            >
+                                                <i className="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        {/* Show linking partners for this character */}
+                                        {linkingPartners[character.id] && (
+                                            <div className="character-partners">
+                                                <h6>Perfect Partners:</h6>
+                                                <div className="partners-list">
+                                                    {linkingPartners[character.id].slice(0, 3).map(partner => (
+                                                        <div key={partner.id} className="partner-preview">
+                                                            <span className="partner-name">{partner.name}</span>
+                                                            <span className="shared-links-count">
+                                                                {character.links.filter(link => 
+                                                                    partner.links && partner.links.includes(link)
+                                                                ).length} links
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="empty-slot">
+                                        <i className="fas fa-plus"></i>
+                                        <span>Slot {index + 1}</span>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {teamStats && (
+                        <div className="team-stats">
+                            <h4>Team Statistics</h4>
+                            <div className="stats-grid">
+                                <div className="stat-item">
+                                    <label>Total HP:</label>
+                                    <span>{teamStats.totalHp.toLocaleString()}</span>
+                                </div>
+                                <div className="stat-item">
+                                    <label>Total ATK:</label>
+                                    <span>{teamStats.totalAttack.toLocaleString()}</span>
+                                </div>
+                                <div className="stat-item">
+                                    <label>Total DEF:</label>
+                                    <span>{teamStats.totalDefence.toLocaleString()}</span>
+                                </div>
+                                <div className="stat-item">
+                                    <label>Total Cost:</label>
+                                    <span>{teamStats.totalCost}</span>
+                                </div>
+                            </div>
+                            
+                            <div className="synergy-analysis">
+                                <h5>Type Distribution</h5>
+                                <div className="type-distribution">
+                                    {Object.entries(teamStats.typeCount).map(([type, count]) => (
+                                        <span key={type} className={`type-badge type-${type}`}>
+                                            {type}: {count}
+                                        </span>
+                                    ))}
+                                </div>
+                                
+                                <h5>Class Distribution</h5>
+                                <div className="class-distribution">
+                                    {Object.entries(teamStats.classCount).map(([cls, count]) => (
+                                        <span key={cls} className={`class-badge class-${cls}`}>
+                                            {cls}: {count}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Comprehensive Linking Partners List */}
+                    {team.length > 0 && (
+                        <div className="team-linking-partners">
+                            <h4>🔗 All Linking Partners</h4>
+                            <p className="partners-description">
+                                Characters that share 4+ links with your team members (perfect linking partners)
+                            </p>
+                            <div className="all-partners-grid">
+                                {team.map((teamMember, index) => (
+                                    <div key={teamMember.id} className="member-partners-section">
+                                        <div className="member-header">
+                                            <div className="member-preview">
+                                                {teamMember.image_url && teamMember.image_url !== 'Error' && (
+                                                    <img src={teamMember.image_url} alt={teamMember.name} />
+                                                )}
+                                                <div className="member-info">
+                                                    <h5>{teamMember.name}</h5>
+                                                    <p>{teamMember.title}</p>
+                                                </div>
+                                            </div>
+                                            <div className="partner-count">
+                                                {linkingPartners[teamMember.id] ? linkingPartners[teamMember.id].length : 0} partners
+                                            </div>
+                                        </div>
+                                        
+                                        {linkingPartners[teamMember.id] && linkingPartners[teamMember.id].length > 0 ? (
+                                            <div className="partners-list-full">
+                                                {linkingPartners[teamMember.id].slice(0, 10).map(partner => {
+                                                    const sharedLinks = teamMember.links.filter(link => 
+                                                        partner.links && partner.links.includes(link)
+                                                    );
+                                                    
+                                                    return (
+                                                        <div key={partner.id} className="partner-item">
+                                                            <div className="partner-basic-info">
+                                                                <div className="partner-name-title">
+                                                                    <span className="partner-name">{partner.name}</span>
+                                                                    <span className="partner-title">{partner.title}</span>
+                                                                </div>
+                                                                <div className="partner-badges">
+                                                                    <span className={`badge type-${partner.type}`}>{partner.type}</span>
+                                                                    <span className={`badge class-${partner.class}`}>{partner.class}</span>
+                                                                    <span className={`badge rarity-${partner.rarity}`}>{partner.rarity}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="shared-links-detailed">
+                                                                <div className="shared-count-badge">
+                                                                    {sharedLinks.length} shared
+                                                                </div>
+                                                                <div className="shared-links-tags">
+                                                                    {sharedLinks.map((link, linkIndex) => (
+                                                                        <span key={linkIndex} className="shared-link-tag">{link}</span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <div className="no-partners-message">
+                                                <i className="fas fa-info-circle"></i>
+                                                <span>No perfect linking partners found</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        
+        // Character Comparison Component
+        function ComparisonTool() {
+            const { compareList, removeFromCompare, clearCompare } = useApp();
+            
+            if (compareList.length === 0) {
+                return (
+                    <div className="comparison-empty">
+                        <h3>Character Comparison</h3>
+                        <p>Select up to 3 characters to compare their stats and abilities.</p>
+                        <i className="fas fa-balance-scale fa-3x"></i>
+                    </div>
+                );
+            }
+            
+            return (
+                <div className="comparison-container">
+                    <div className="comparison-header">
+                        <h3>Character Comparison ({compareList.length}/3)</h3>
+                        <button onClick={clearCompare} className="clear-btn">
+                            <i className="fas fa-times"></i> Clear All
+                        </button>
+                    </div>
+                    
+                    <div className="comparison-grid">
+                        {compareList.map(character => (
+                            <div key={character.id} className="comparison-card">
+                                <div className="comparison-card-header">
+                                    <h4>{character.name}</h4>
+                                    <button 
+                                        onClick={() => removeFromCompare(character.id)}
+                                        className="remove-btn"
+                                    >
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <div className="comparison-stats">
+                                    <div className="stat-row">
+                                        <label>HP (Rainbow):</label>
+                                        <span>{character.rainbow_hp?.toLocaleString() || 'N/A'}</span>
+                                    </div>
+                                    <div className="stat-row">
+                                        <label>ATK (Rainbow):</label>
+                                        <span>{character.rainbow_attack?.toLocaleString() || 'N/A'}</span>
+                                    </div>
+                                    <div className="stat-row">
+                                        <label>DEF (Rainbow):</label>
+                                        <span>{character.rainbow_defence?.toLocaleString() || 'N/A'}</span>
+                                    </div>
+                                    <div className="stat-row">
+                                        <label>Cost:</label>
+                                        <span>{character.cost}</span>
+                                    </div>
+                                    <div className="stat-row">
+                                        <label>Type:</label>
+                                        <span className={`badge type-${character.type}`}>{character.type}</span>
+                                    </div>
+                                    <div className="stat-row">
+                                        <label>Class:</label>
+                                        <span className={`badge class-${character.class}`}>{character.class}</span>
+                                    </div>
+                                </div>
+                                
+                                <div className="comparison-skills">
+                                    <div className="skill-preview">
+                                        <h5>Leader Skill</h5>
+                                        <p>{character.leader_skill || 'N/A'}</p>
+                                    </div>
+                                    <div className="skill-preview">
+                                        <h5>Passive</h5>
+                                        <p>{character.passive || 'N/A'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    <div className="comparison-actions">
+                        <button 
+                            className="export-btn"
+                            onClick={() => exportComparison(compareList)}
+                        >
+                            <i className="fas fa-download"></i> Export Comparison
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+        
+        // Enhanced Statistics Dashboard
+        function StatsDashboard() {
+            const { stats } = useApp();
+            const [detailedStats, setDetailedStats] = useState(null);
+            const [loading, setLoading] = useState(false);
+            
+            useEffect(() => {
+                loadDetailedStats();
+            }, []);
+            
+            const loadDetailedStats = async () => {
+                try {
+                    setLoading(true);
+                    const response = await fetch('/api/characters/stats/detailed');
+                    const data = await response.json();
+                    if (data.success) {
+                        setDetailedStats(data.data);
+                    }
+                } catch (error) {
+                    console.error('Failed to load detailed stats:', error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            
+            if (loading) {
+                return (
+                    <div className="stats-loading">
+                        <i className="fas fa-spinner fa-spin fa-3x"></i>
+                        <p>Loading detailed statistics...</p>
+                    </div>
+                );
+            }
+            
+            if (!detailedStats) {
+                return (
+                    <div className="stats-error">
+                        <p>Failed to load detailed statistics</p>
+                        <button onClick={loadDetailedStats} className="retry-btn">
+                            <i className="fas fa-redo"></i> Retry
+                        </button>
+                    </div>
+                );
+            }
+            
+            return (
+                <div className="stats-dashboard">
+                    <h3>📊 Database Statistics</h3>
+                    
+                    <div className="stats-grid">
+                        <div className="stat-section">
+                            <h4>Rarity Distribution</h4>
+                            <div className="rarity-chart">
+                                {Object.entries(detailedStats.byRarity || {}).map(([rarity, count]) => (
+                                    <div key={rarity} className="rarity-stat">
+                                        <span className={`rarity-badge rarity-${rarity}`}>{rarity}</span>
+                                        <span className="stat-count">{count}</span>
+                                        <div className="stat-bar">
+                                            <div 
+                                                className="stat-fill"
+                                                style={{width: `${(count / detailedStats.totalCharacters) * 100}%`}}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="stat-section">
+                            <h4>Type Distribution</h4>
+                            <div className="type-chart">
+                                {Object.entries(detailedStats.byType || {}).map(([type, count]) => (
+                                    <div key={type} className="type-stat">
+                                        <span className={`badge type-${type}`}>{type}</span>
+                                        <span className="stat-count">{count}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="stat-section">
+                            <h4>Class Distribution</h4>
+                            <div className="class-chart">
+                                {Object.entries(detailedStats.byClass || {}).map(([cls, count]) => (
+                                    <div key={cls} className="class-stat">
+                                        <span className={`badge class-${cls}`}>{cls}</span>
+                                        <span className="stat-count">{count}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="stat-section">
+                            <h4>Special Features</h4>
+                            <div className="feature-stats">
+                                <div className="feature-stat">
+                                    <span>🔄 Transformations:</span>
+                                    <span>{detailedStats.transformations || 0}</span>
+                                </div>
+                                <div className="feature-stat">
+                                    <span>⚡ EZA Available:</span>
+                                    <span>{detailedStats.ezaAvailable || 0}</span>
+                                </div>
+                                <div className="feature-stat">
+                                    <span>🌟 SEZA Available:</span>
+                                    <span>{detailedStats.sezaAvailable || 0}</span>
+                                </div>
+                                <div className="feature-stat">
+                                    <span>🔄 Standby Skills:</span>
+                                    <span>{detailedStats.standbySkills || 0}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        // Data Export Functions
+        function exportComparison(characters) {
+            const data = {
+                timestamp: new Date().toISOString(),
+                characters: characters.map(char => ({
+                    name: char.name,
+                    title: char.title,
+                    rarity: char.rarity,
+                    type: char.type,
+                    class: char.class,
+                    stats: {
+                        hp: char.rainbow_hp,
+                        attack: char.rainbow_attack,
+                        defence: char.rainbow_defence
+                    },
+                    skills: {
+                        leader: char.leader_skill,
+                        passive: char.passive,
+                        super_attack: char.super_attack
+                    }
+                }))
+            };
+            
+            downloadJSON(data, `dokkan_comparison_${new Date().toISOString().split('T')[0]}.json`);
+        }
+        
+        function downloadJSON(data, filename) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
         // Header Component
         function Header() {
-            const { loadStats } = useApp();
+            const { loadStats, currentView, setCurrentView, compareList, team } = useApp();
+            const { theme, toggleTheme } = useTheme();
             
             const triggerUpdate = async () => {
                 try {
@@ -599,14 +1419,69 @@
                 }
             };
             
+            const exportAllData = async () => {
+                try {
+                    const response = await fetch('/api/characters/export');
+                    const data = await response.json();
+                    if (data.success) {
+                        downloadJSON(data.data, `dokkan_database_${new Date().toISOString().split('T')[0]}.json`);
+                    } else {
+                        alert('Export failed: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    alert('Export failed: ' + error.message);
+                }
+            };
+            
             return (
                 <header className="app-header">
                     <div className="header-content">
                         <h1>🐉 Dokkan Database</h1>
-                        <button className="update-btn" onClick={triggerUpdate}>
-                            <i className="fas fa-sync-alt"></i>
-                            Update
-                        </button>
+                        
+                        <div className="header-nav">
+                            <button 
+                                className={`nav-btn ${currentView === 'grid' ? 'active' : ''}`}
+                                onClick={() => setCurrentView('grid')}
+                            >
+                                <i className="fas fa-th-large"></i> Characters
+                            </button>
+                            <button 
+                                className={`nav-btn ${currentView === 'team' ? 'active' : ''}`}
+                                onClick={() => setCurrentView('team')}
+                            >
+                                <i className="fas fa-users"></i> 
+                                Team {team.length > 0 && `(${team.length})`}
+                            </button>
+                            <button 
+                                className={`nav-btn ${currentView === 'compare' ? 'active' : ''}`}
+                                onClick={() => setCurrentView('compare')}
+                            >
+                                <i className="fas fa-balance-scale"></i> 
+                                Compare {compareList.length > 0 && `(${compareList.length})`}
+                            </button>
+                            <button 
+                                className={`nav-btn ${currentView === 'stats' ? 'active' : ''}`}
+                                onClick={() => setCurrentView('stats')}
+                            >
+                                <i className="fas fa-chart-bar"></i> Statistics
+                            </button>
+                        </div>
+                        
+                        <div className="header-actions">
+                            <button 
+                                className="theme-toggle-btn" 
+                                onClick={toggleTheme}
+                                title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                            >
+                                <i className={`fas fa-${theme === 'light' ? 'moon' : 'sun'}`}></i>
+                            </button>
+                            <button className="export-btn" onClick={exportAllData}>
+                                <i className="fas fa-download"></i> Export
+                            </button>
+                            <button className="update-btn" onClick={triggerUpdate}>
+                                <i className="fas fa-sync-alt"></i> Update
+                            </button>
+                        </div>
                     </div>
                 </header>
             );
@@ -615,18 +1490,40 @@
         // Main App Component
         function App() {
             return (
-                <AppProvider>
-                    <div className="app">
-                        <Header />
-                        <main className="main-content">
+                <ThemeProvider>
+                    <AppProvider>
+                        <div className="app">
+                            <Header />
+                            <main className="main-content">
+                                <MainContent />
+                            </main>
+                            <CharacterModal />
+                        </div>
+                    </AppProvider>
+                </ThemeProvider>
+            );
+        }
+        
+        // Main Content Router
+        function MainContent() {
+            const { currentView } = useApp();
+            
+            switch (currentView) {
+                case 'team':
+                    return <TeamBuilder />;
+                case 'compare':
+                    return <ComparisonTool />;
+                case 'stats':
+                    return <StatsDashboard />;
+                default:
+                    return (
+                        <>
                             <StatsBar />
                             <SearchFilters />
                             <CharacterGrid />
-                        </main>
-                        <CharacterModal />
-                    </div>
-                </AppProvider>
-            );
+                        </>
+                    );
+            }
         }
         
         // Render the app
