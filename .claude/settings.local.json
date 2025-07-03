@@ -22,7 +22,14 @@
       "Bash(git checkout:*)",
       "Bash(git merge:*)",
       "WebFetch(domain:dragonball.fandom.com)",
-      "WebFetch(domain:dokkan.wiki)"
+      "WebFetch(domain:dokkan.wiki)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(sudo systemctl start:*)",
+      "Bash(sudo systemctl:*)",
+      "Bash(sudo mysql:*)",
+      "Bash(mv:*)",
+      "Bash(pkill:*)"
     ],
     "deny": []
   }

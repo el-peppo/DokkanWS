@@ -58,6 +58,10 @@ export declare enum Types {
     INT = "INT"
 }
 export declare enum Rarities {
+    N = "N",
+    R = "R",
+    SR = "SR",
+    SSR = "SSR",
     UR = "UR",
     LR = "LR"
 }
