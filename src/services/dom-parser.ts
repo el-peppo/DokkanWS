@@ -100,10 +100,11 @@ export class DOMParser {
             
             // For large categories like UR, generate alphabet-based pagination
             if (characterCount >= 50 && categoryName === 'UR') {
-                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-                for (const letter of alphabet) {
-                    const alphabetUrl = `/wiki/Category:${categoryName}?from=${letter}`;
-                    if (!paginationUrls.some(url => url.includes(`from=${letter}`))) {
+                // Include A-Z and common number prefixes (like "30 Minutes of Mayhem Veku")
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123'.split('');
+                for (const char of characters) {
+                    const alphabetUrl = `/wiki/Category:${categoryName}?from=${char}`;
+                    if (!paginationUrls.some(url => url.includes(`from=${char}`))) {
                         paginationUrls.push(alphabetUrl);
                     }
                 }
