@@ -31,16 +31,22 @@ export class CharacterExtractor {
                 imageURL: this.extractImageURL(document),
                 leaderSkill: this.extractLeaderSkill(document),
                 ezaLeaderSkill: this.extractEZALeaderSkill(document),
+                sezaLeaderSkill: this.extractSEZALeaderSkill(document),
                 superAttack: this.extractSuperAttack(document),
                 ezaSuperAttack: this.extractEZASuperAttack(document),
+                sezaSuperAttack: this.extractSEZASuperAttack(document),
                 ultraSuperAttack: this.extractUltraSuperAttack(document),
                 ezaUltraSuperAttack: this.extractEZAUltraSuperAttack(document),
+                sezaUltraSuperAttack: this.extractSEZAUltraSuperAttack(document),
                 passive: this.extractPassive(document),
                 ezaPassive: this.extractEZAPassive(document),
+                sezaPassive: this.extractSEZAPassive(document),
                 activeSkill: this.extractActiveSkill(document),
                 activeSkillCondition: this.extractActiveSkillCondition(document),
                 ezaActiveSkill: this.extractEZAActiveSkill(document),
                 ezaActiveSkillCondition: this.extractEZAActiveSkillCondition(document),
+                sezaActiveSkill: this.extractSEZAActiveSkill(document),
+                sezaActiveSkillCondition: this.extractSEZAActiveSkillCondition(document),
                 transformationCondition: this.extractTransformationCondition(document),
                 links: this.extractLinks(document),
                 categories: this.extractCategories(document),
@@ -491,10 +497,13 @@ export class CharacterExtractor {
                 transformedType: this.extractTransformationType(document, baseSelector),
                 transformedSuperAttack: this.extractTransformationSuperAttack(document, baseSelector),
                 transformedEZASuperAttack: this.extractTransformationEZASuperAttack(document, baseSelector),
+                transformedSEZASuperAttack: this.extractTransformationSEZASuperAttack(document, baseSelector),
                 transformedUltraSuperAttack: this.extractTransformationUltraSuperAttack(document, baseSelector),
                 transformedEZAUltraSuperAttack: this.extractTransformationEZAUltraSuperAttack(document, baseSelector),
+                transformedSEZAUltraSuperAttack: this.extractTransformationSEZAUltraSuperAttack(document, baseSelector),
                 transformedPassive: this.extractTransformationPassive(document, baseSelector),
                 transformedEZAPassive: this.extractTransformationEZAPassive(document, baseSelector),
+                transformedSEZAPassive: this.extractTransformationSEZAPassive(document, baseSelector),
                 transformedActiveSkill: this.extractTransformationActiveSkill(document, baseSelector),
                 transformedActiveSkillCondition: this.extractTransformationActiveSkillCondition(document, baseSelector),
                 transformedLinks: this.extractTransformationLinks(document, baseSelector),
@@ -660,5 +669,222 @@ export class CharacterExtractor {
             }
         }
         return 'Error';
+    }
+
+    // SEZA (Super EZA) Extraction Methods
+    private static extractSEZALeaderSkill(document: Document): string | undefined {
+        // Look for SEZA sections - they typically come after regular EZA sections
+        const sezaTables = DOMParser.querySelectorAll(document, 'table.ezawidth');
+        if (sezaTables && sezaTables.length > 2) {
+            // SEZA is typically the third table (after base and EZA)
+            const sezaTable = sezaTables[2];
+            const skillImage = DOMParser.querySelector(sezaTable as Element, '[data-image-name="Leader Skill.png"]');
+            if (skillImage) {
+                const row = DOMParser.findClosest(skillImage, 'tr');
+                const nextRow = DOMParser.getNextSibling(row);
+                const text = DOMParser.extractText(nextRow, '');
+                if (text && text !== 'Error') return text;
+            }
+        }
+
+        // Alternative: look for Super EZA specific selectors
+        const sezaElement = DOMParser.querySelector(document, '.super-eza [data-image-name="Leader Skill.png"]');
+        if (sezaElement) {
+            const row = DOMParser.findClosest(sezaElement, 'tr');
+            const nextRow = DOMParser.getNextSibling(row);
+            const text = DOMParser.extractText(nextRow, '');
+            if (text && text !== 'Error') return text;
+        }
+
+        return undefined;
+    }
+
+    private static extractSEZASuperAttack(document: Document): string | undefined {
+        const sezaTables = DOMParser.querySelectorAll(document, 'table.ezawidth');
+        if (sezaTables && sezaTables.length > 2) {
+            const sezaTable = sezaTables[2];
+            const skillImage = DOMParser.querySelector(sezaTable as Element, '[data-image-name="Super atk.png"]');
+            if (skillImage) {
+                const row = DOMParser.findClosest(skillImage, 'tr');
+                const nextRow = DOMParser.getNextSibling(row);
+                const text = DOMParser.extractText(nextRow, '');
+                if (text && text !== 'Error') return text;
+            }
+        }
+
+        const sezaElement = DOMParser.querySelector(document, '.super-eza [data-image-name="Super atk.png"]');
+        if (sezaElement) {
+            const row = DOMParser.findClosest(sezaElement, 'tr');
+            const nextRow = DOMParser.getNextSibling(row);
+            const text = DOMParser.extractText(nextRow, '');
+            if (text && text !== 'Error') return text;
+        }
+
+        return undefined;
+    }
+
+    private static extractSEZAUltraSuperAttack(document: Document): string | undefined {
+        const sezaTables = DOMParser.querySelectorAll(document, 'table.ezawidth');
+        if (sezaTables && sezaTables.length > 2) {
+            const sezaTable = sezaTables[2];
+            const skillImage = DOMParser.querySelector(sezaTable as Element, '[data-image-name="Ultra Super atk.png"]');
+            if (skillImage) {
+                const row = DOMParser.findClosest(skillImage, 'tr');
+                const nextRow = DOMParser.getNextSibling(row);
+                const text = DOMParser.extractText(nextRow, '');
+                if (text && text !== 'Error') return text;
+            }
+        }
+
+        const sezaElement = DOMParser.querySelector(document, '.super-eza [data-image-name="Ultra Super atk.png"]');
+        if (sezaElement) {
+            const row = DOMParser.findClosest(sezaElement, 'tr');
+            const nextRow = DOMParser.getNextSibling(row);
+            const text = DOMParser.extractText(nextRow, '');
+            if (text && text !== 'Error') return text;
+        }
+
+        return undefined;
+    }
+
+    private static extractSEZAPassive(document: Document): string | undefined {
+        const sezaTables = DOMParser.querySelectorAll(document, 'table.ezawidth');
+        if (sezaTables && sezaTables.length > 2) {
+            const sezaTable = sezaTables[2];
+            const skillImage = DOMParser.querySelector(sezaTable as Element, '[data-image-name="Passive skill.png"]');
+            if (skillImage) {
+                const row = DOMParser.findClosest(skillImage, 'tr');
+                const nextRow = DOMParser.getNextSibling(row);
+                const text = DOMParser.extractText(nextRow, '');
+                if (text && text !== 'Error') return cleanPassiveText(text);
+            }
+        }
+
+        const sezaElement = DOMParser.querySelector(document, '.super-eza [data-image-name="Passive skill.png"]');
+        if (sezaElement) {
+            const row = DOMParser.findClosest(sezaElement, 'tr');
+            const nextRow = DOMParser.getNextSibling(row);
+            const text = DOMParser.extractText(nextRow, '');
+            if (text && text !== 'Error') return cleanPassiveText(text);
+        }
+
+        return undefined;
+    }
+
+    private static extractSEZAActiveSkill(document: Document): string | undefined {
+        const sezaTables = DOMParser.querySelectorAll(document, 'table.ezawidth');
+        if (sezaTables && sezaTables.length > 2) {
+            const sezaTable = sezaTables[2];
+            const skillImage = DOMParser.querySelector(sezaTable as Element, '[data-image-name="Active skill.png"]');
+            if (skillImage) {
+                const row = DOMParser.findClosest(skillImage, 'tr');
+                const nextRow = DOMParser.getNextSibling(row);
+                const text = DOMParser.extractText(nextRow, '');
+                if (text && text !== 'Error') return text;
+            }
+        }
+
+        const sezaElement = DOMParser.querySelector(document, '.super-eza [data-image-name="Active skill.png"]');
+        if (sezaElement) {
+            const row = DOMParser.findClosest(sezaElement, 'tr');
+            const nextRow = DOMParser.getNextSibling(row);
+            const text = DOMParser.extractText(nextRow, '');
+            if (text && text !== 'Error') return text;
+        }
+
+        return undefined;
+    }
+
+    private static extractSEZAActiveSkillCondition(document: Document): string | undefined {
+        const sezaTables = DOMParser.querySelectorAll(document, 'table.ezawidth');
+        if (sezaTables && sezaTables.length > 2) {
+            const sezaTable = sezaTables[2];
+            const skillImage = DOMParser.querySelector(sezaTable as Element, '[data-image-name="Active skill.png"]');
+            if (skillImage) {
+                const row = DOMParser.findClosest(skillImage, 'tr');
+                let currentRow = DOMParser.getNextSibling(row);
+                
+                for (let i = 0; i < 3 && currentRow; i++) {
+                    currentRow = DOMParser.getNextSibling(currentRow);
+                    const centerElement = DOMParser.querySelector(currentRow, 'td > center');
+                    if (centerElement) {
+                        const text = DOMParser.extractText(centerElement, '');
+                        if (text && text !== 'Error') return text;
+                    }
+                }
+            }
+        }
+
+        const sezaElement = DOMParser.querySelector(document, '.super-eza [data-image-name="Active skill.png"]');
+        if (sezaElement) {
+            const row = DOMParser.findClosest(sezaElement, 'tr');
+            let currentRow = DOMParser.getNextSibling(row);
+            
+            for (let i = 0; i < 3 && currentRow; i++) {
+                currentRow = DOMParser.getNextSibling(currentRow);
+                const centerElement = DOMParser.querySelector(currentRow, 'td > center');
+                if (centerElement) {
+                    const text = DOMParser.extractText(centerElement, '');
+                    if (text && text !== 'Error') return text;
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    // Transformation SEZA Extraction Methods
+    private static extractTransformationSEZASuperAttack(document: Document, baseSelector: string): string | undefined {
+        const selectors = [
+            `${baseSelector} .righttablecard > table > tbody > tr > td > div > div > div:nth-child(4) [data-image-name="Super atk.png"]`,
+            `${baseSelector} .super-eza [data-image-name="Super atk.png"]`
+        ];
+
+        for (const selector of selectors) {
+            const element = DOMParser.querySelector(document, selector);
+            if (element) {
+                const row = DOMParser.findClosest(element, 'tr');
+                const nextRow = DOMParser.getNextSibling(row);
+                const text = DOMParser.extractText(nextRow, '');
+                if (text && text !== 'Error') return text;
+            }
+        }
+        return undefined;
+    }
+
+    private static extractTransformationSEZAUltraSuperAttack(document: Document, baseSelector: string): string | undefined {
+        const selectors = [
+            `${baseSelector} .righttablecard > table > tbody > tr > td > div > div > div:nth-child(4) [data-image-name="Ultra Super atk.png"]`,
+            `${baseSelector} .super-eza [data-image-name="Ultra Super atk.png"]`
+        ];
+
+        for (const selector of selectors) {
+            const element = DOMParser.querySelector(document, selector);
+            if (element) {
+                const row = DOMParser.findClosest(element, 'tr');
+                const nextRow = DOMParser.getNextSibling(row);
+                const text = DOMParser.extractText(nextRow, '');
+                if (text && text !== 'Error') return text;
+            }
+        }
+        return undefined;
+    }
+
+    private static extractTransformationSEZAPassive(document: Document, baseSelector: string): string | undefined {
+        const selectors = [
+            `${baseSelector} .righttablecard > table > tbody > tr > td > div > div > div:nth-child(4) [data-image-name="Passive skill.png"]`,
+            `${baseSelector} .super-eza [data-image-name="Passive skill.png"]`
+        ];
+
+        for (const selector of selectors) {
+            const element = DOMParser.querySelector(document, selector);
+            if (element) {
+                const row = DOMParser.findClosest(element, 'tr');
+                const nextRow = DOMParser.getNextSibling(row);
+                const text = DOMParser.extractText(nextRow, '');
+                if (text && text !== 'Error') return cleanPassiveText(text);
+            }
+        }
+        return undefined;
     }
 }

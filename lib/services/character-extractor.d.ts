@@ -49,5 +49,14 @@ export declare class CharacterExtractor {
     private static extractTransformationActiveSkillCondition;
     private static extractTransformationLinks;
     private static extractTransformationImageURL;
+    private static extractSEZALeaderSkill;
+    private static extractSEZASuperAttack;
+    private static extractSEZAUltraSuperAttack;
+    private static extractSEZAPassive;
+    private static extractSEZAActiveSkill;
+    private static extractSEZAActiveSkillCondition;
+    private static extractTransformationSEZASuperAttack;
+    private static extractTransformationSEZAUltraSuperAttack;
+    private static extractTransformationSEZAPassive;
 }
 //# sourceMappingURL=character-extractor.d.ts.map
