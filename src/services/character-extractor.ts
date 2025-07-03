@@ -706,16 +706,18 @@ export class CharacterExtractor {
         }
 
         // Alternative: look for text containing "standby" keywords
-        const allText = DOMParser.extractText(document, '');
+        const allText = DOMParser.extractText(document.body || document.documentElement, '');
         if (allText.toLowerCase().includes('switch to standby') || 
             allText.toLowerCase().includes('standby for') ||
             allText.toLowerCase().includes('standby skill')) {
             // Try to find the specific standby text in tables
             const tables = DOMParser.querySelectorAll(document, 'table');
-            for (const table of tables) {
-                const tableText = DOMParser.extractText(table as Element, '');
-                if (tableText.toLowerCase().includes('switch to standby')) {
-                    return tableText.trim();
+            if (tables) {
+                for (const table of tables) {
+                    const tableText = DOMParser.extractText(table as Element, '');
+                    if (tableText.toLowerCase().includes('switch to standby')) {
+                        return tableText.trim();
+                    }
                 }
             }
         }

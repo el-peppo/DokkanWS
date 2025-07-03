@@ -28,6 +28,8 @@ export interface Character {
     ezaActiveSkillCondition?: string;
     sezaActiveSkill?: string;
     sezaActiveSkillCondition?: string;
+    standbySkill?: string;
+    standbySkillCondition?: string;
     transformationCondition?: string;
     links: string[];
     categories: string[];

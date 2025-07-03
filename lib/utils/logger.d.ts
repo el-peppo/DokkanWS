@@ -16,6 +16,7 @@ export declare class ScrapingLogger {
     private startTime;
     private processed;
     private total;
+    private categoryProgress;
     startScraping(totalCharacters: number): Promise<void>;
     logProgress(category: string, charactersProcessed: number): Promise<void>;
     logCompletion(): Promise<void>;

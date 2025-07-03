@@ -51,6 +51,8 @@ export declare class CharacterExtractor {
     private static extractTransformationLinks;
     private static extractTransformationImageURL;
     private static extractTransformationFullImageURL;
+    private static extractStandbySkill;
+    private static extractStandbySkillCondition;
     private static extractSEZALeaderSkill;
     private static extractSEZASuperAttack;
     private static extractSEZAUltraSuperAttack;
