@@ -132,7 +132,10 @@ Store scraped character data in MySQL for advanced querying and analysis.
 ### Setup Database
 
 ```bash
-# Install MySQL and create database
+# Option 1: Quick start with sample data (100 real LR characters)
+mysql -u root -p < database/sample_data.sql
+
+# Option 2: Create empty database
 npm run setup-db
 
 # Configure database connection
@@ -155,7 +158,9 @@ npm run import-db /path/to/data.json
 
 ### Features
 
+- **Sample Data**: 100 real LR characters included for immediate testing
 - **Normalized schema**: Separate tables for links, categories, transformations
+- **SEZA Support**: Super EZA fields in all tables
 - **Duplicate prevention**: Skips existing characters by ID
 - **Transaction safety**: Rollback on errors for data integrity
 - **Progress tracking**: Detailed import logs and statistics

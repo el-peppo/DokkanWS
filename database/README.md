@@ -2,7 +2,36 @@
 
 Simple MySQL integration for storing scraped Dokkan character data.
 
-## Setup
+## Quick Start with Sample Data
+
+1. **Install MySQL/MariaDB** (if not already installed)
+
+2. **Load sample database with 100 real characters**:
+   ```bash
+   # Create database and load sample data
+   mysql -u root -p < database/sample_data.sql
+   ```
+
+3. **Or create empty database and import your own data**:
+   ```bash
+   # Setup empty database schema
+   npm run setup-db
+   
+   # Then import your JSON data
+   npm run import-db your-data.json
+   ```
+
+## Sample Data
+
+The `sample_data.sql` file contains:
+- **100 real LR characters** from Dokkan Battle
+- **Complete character data** including stats, skills, links, categories
+- **SEZA support** (Super EZA fields)
+- **All relationships** properly normalized across tables
+
+This gives you a working database to test queries and functionality immediately.
+
+## Setup from Scratch
 
 1. **Install MySQL** (if not already installed)
 
