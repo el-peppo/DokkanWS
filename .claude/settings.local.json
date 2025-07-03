@@ -34,7 +34,10 @@
       "Bash(kill:*)",
       "WebFetch(domain:dbz-dokkanbattle.fandom.com)",
       "Bash(sed:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git commit:*)",
+      "Bash(pkill:*)",
+      "Bash(npm outdated)"
     ],
     "deny": []
   }

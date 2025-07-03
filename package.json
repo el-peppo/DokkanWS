@@ -14,7 +14,7 @@
     "prestart": "npm run build",
     "test": "mocha --require ts-node/register 'src/**/*.spec.ts'",
     "test:watch": "npm run test -- --watch",
-    "run": "node --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' src/index.ts",
+    "run": "NODE_OPTIONS=\"--disable-warning=DEP0180\" node --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' src/index.ts",
     "run:optimized": "npx ts-node src/index-optimized.ts",
     "import-db": "node --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' src/database/import-cli.ts",
     "setup-db": "mysql -u root -p < database/schema.sql",
@@ -38,7 +38,7 @@
     "jsdom": "^24.0.0",
     "morgan": "^1.10.0",
     "mysql2": "^3.14.1",
-    "p-limit": "^5.0.0",
+    "p-limit": "^6.2.0",
     "socket.io": "^4.8.1",
     "winston": "^3.13.0"
   },
