@@ -9,6 +9,7 @@ export interface Character {
     cost: number;
     id: string;
     imageURL: string;
+    fullImageURL: string;
     leaderSkill: string;
     ezaLeaderSkill?: string;
     sezaLeaderSkill?: string;
@@ -44,6 +45,9 @@ export interface Character {
     freeDupeDefence: number;
     rainbowDefence: number;
     kiMultiplier: string;
+    ki12Multiplier?: string;
+    ki18Multiplier?: string;
+    ki24Multiplier?: string;
     transformations?: Transformation[];
 }
 export declare enum Classes {
@@ -83,6 +87,7 @@ export interface Transformation {
     transformedActiveSkillCondition?: string;
     transformedLinks: string[];
     transformedImageURL: string;
+    transformedFullImageURL: string;
 }
 export interface ScrapingConfig {
     maxRetries: number;

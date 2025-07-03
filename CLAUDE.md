@@ -41,22 +41,38 @@ The project includes optional database integration to store scraped character da
 
 This is completely optional - the core scraper works independently and outputs JSON files as before.
 
+## Optional Corelog Integration
+
+The project includes optional integration with corelog Python suite for centralized remote logging. Located in `src/utils/corelog-client.ts` and enhanced logging system:
+
+- **Remote-Only Logging**: When enabled, logs are sent only to the remote corelog server (with winston fallback on errors)
+- **TCP Protocol**: Uses corelog's native TCP JSON protocol for reliable transmission
+- **Rich Context**: Sends detailed scraping metrics and structured data for analysis
+- **Error Resilience**: Graceful fallback to local logging if corelog server unavailable
+- **Environment Configuration**: Simple enable/disable via environment variables
+
+Enable by setting `CORELOG_ENABLED=true` and configuring your corelog server endpoint. Compatible with existing corelog Python infrastructure for home automation logging.
+
+Related repositories:
+- **corelog**: Full-featured Python logging server and client suite (https://github.com/elpeppo/corelog)
+- **corelog-min**: Minimal standalone Python logging server for lightweight deployments (https://github.com/elpeppo/corelog-min)
+
 ## Architecture
 
 ### Core Components
 
 **scraper.ts** - Main scraping engine with two key functions:
-- `getDokkanData(rarity)`: Scrapes character lists by rarity (UR/LR) from category pages
+- `getDokkanData(rarity)`: Scrapes character lists by rarity (N/R/SR/SSR/UR/LR) from category pages
 - `extractCharacterData(document)`: Extracts detailed character data from individual character pages using complex DOM selectors
 
 **character.ts** - Type definitions:
 - `Character` interface: 40+ fields including stats, skills, transformations
 - `Transformation` interface: For characters that can transform mid-battle
-- Enums for `Classes` (Super/Extreme), `Types` (PHY/STR/AGL/TEQ/INT), `Rarities` (UR/LR)
+- Enums for `Classes` (Super/Extreme), `Types` (PHY/STR/AGL/TEQ/INT), `Rarities` (N/R/SR/SSR/UR/LR)
 
 **index.ts** - Orchestration layer that:
 - Runs scraper across multiple UR batches (wiki pagination requires multiple requests)
-- Combines LR and UR data sets
+- Combines all rarity data sets (N, R, SR, SSR, UR, LR)
 - Saves consolidated JSON output with date stamps
 
 ### Data Extraction Strategy

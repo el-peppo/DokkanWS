@@ -5,12 +5,12 @@ export class DOMParser {
     /**
      * Parse HTML string into DOM Document
      */
-    static parseHTML(html: string): Document | null {
+    static async parseHTML(html: string): Promise<Document | null> {
         try {
             const dom = new JSDOM(html);
             return dom.window.document;
         } catch (error) {
-            logger.error('Failed to parse HTML:', error);
+            await logger.error('Failed to parse HTML:', {}, error as Error);
             return null;
         }
     }
@@ -18,7 +18,7 @@ export class DOMParser {
     /**
      * Extract character page links from category page
      */
-    static extractCharacterLinks(document: Document, baseUrl: string): string[] {
+    static async extractCharacterLinks(document: Document, baseUrl: string): Promise<string[]> {
         try {
             const linkElements: HTMLAnchorElement[] = Array.from(
                 document.querySelectorAll('.category-page__member-link')
@@ -26,7 +26,7 @@ export class DOMParser {
             
             return linkElements.map(link => baseUrl + link.href);
         } catch (error) {
-            logger.error('Failed to extract character links:', error);
+            await logger.error('Failed to extract character links:', {}, error as Error);
             return [];
         }
     }
@@ -39,7 +39,9 @@ export class DOMParser {
         try {
             return element.querySelector(selector);
         } catch (error) {
-            logger.warn(`Invalid selector "${selector}":`, error);
+            // Note: This should be await logger.warn but that would require making all callers async
+            // For now, we'll leave this as a sync call to avoid massive refactoring
+            logger.warn(`Invalid selector "${selector}":`, { selector });
             return null;
         }
     }
@@ -52,7 +54,9 @@ export class DOMParser {
         try {
             return element.querySelectorAll(selector);
         } catch (error) {
-            logger.warn(`Invalid selector "${selector}":`, error);
+            // Note: This should be await logger.warn but that would require making all callers async
+            // For now, we'll leave this as a sync call to avoid massive refactoring
+            logger.warn(`Invalid selector "${selector}":`, { selector });
             return null;
         }
     }
@@ -109,7 +113,9 @@ export class DOMParser {
         try {
             return element?.closest(selector) ?? null;
         } catch (error) {
-            logger.warn(`Invalid closest selector "${selector}":`, error);
+            // Note: This should be await logger.warn but that would require making all callers async
+            // For now, we'll leave this as a sync call to avoid massive refactoring
+            logger.warn(`Invalid closest selector "${selector}":`, { selector });
             return null;
         }
     }

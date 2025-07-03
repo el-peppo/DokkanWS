@@ -7,14 +7,14 @@ export class CharacterExtractor {
     /**
      * Extract complete character data from character page DOM
      */
-    static extractCharacterData(document: Document): Character | null {
+    static async extractCharacterData(document: Document): Promise<Character | null> {
         try {
-            const transformations = this.extractTransformations(document);
+            const transformations = await this.extractTransformations(document);
             
             // Main character card selection
             const mainTable = DOMParser.querySelector(document, '.mw-parser-output table');
             if (!mainTable) {
-                logger.warn('Main character table not found');
+                await logger.warn('Main character table not found');
                 return null;
             }
 
@@ -65,12 +65,15 @@ export class CharacterExtractor {
                 freeDupeDefence: this.extractBaseStat(document, 'Defence', 4),
                 rainbowDefence: this.extractBaseStat(document, 'Defence', 5),
                 kiMultiplier: this.extractKiMultiplier(document),
+                ki12Multiplier: this.extractKi12Multiplier(document),
+                ki18Multiplier: this.extractKi18Multiplier(document),
+                ki24Multiplier: this.extractKi24Multiplier(document),
                 transformations: transformations.length > 0 ? transformations : undefined
             };
 
             return character;
         } catch (error) {
-            logger.error('Error extracting character data:', error);
+            await logger.error('Error extracting character data:', {}, error as Error);
             return null;
         }
     }
@@ -476,7 +479,7 @@ export class CharacterExtractor {
         return 'Error';
     }
 
-    private static extractTransformations(document: Document): Transformation[] {
+    private static async extractTransformations(document: Document): Promise<Transformation[]> {
         const transformedArray: Transformation[] = [];
         const transformElements = DOMParser.querySelectorAll(document, '.mw-parser-output > div:nth-child(2) > div > ul > li');
         
@@ -486,7 +489,7 @@ export class CharacterExtractor {
 
         // Start from index 1 to skip untransformed state
         for (let index = 1; index < transformCount; index++) {
-            const transformation = this.extractSingleTransformation(document, index);
+            const transformation = await this.extractSingleTransformation(document, index);
             if (transformation) {
                 transformedArray.push(transformation);
             }
@@ -495,7 +498,7 @@ export class CharacterExtractor {
         return transformedArray;
     }
 
-    private static extractSingleTransformation(document: Document, index: number): Transformation | null {
+    private static async extractSingleTransformation(document: Document, index: number): Promise<Transformation | null> {
         try {
             const baseSelector = `.mw-parser-output > div:nth-child(2) > div:nth-child(${index + 2})`;
             
@@ -522,7 +525,7 @@ export class CharacterExtractor {
 
             return transformation;
         } catch (error) {
-            logger.error(`Error extracting transformation ${index}:`, error);
+            await logger.error(`Error extracting transformation ${index}:`, {}, error as Error);
             return null;
         }
     }
@@ -901,6 +904,51 @@ export class CharacterExtractor {
                 const nextRow = DOMParser.getNextSibling(row);
                 const text = DOMParser.extractText(nextRow, '');
                 if (text && text !== 'Error') return cleanPassiveText(text);
+            }
+        }
+        return undefined;
+    }
+
+    private static extractKi12Multiplier(document: Document): string | undefined {
+        const element = DOMParser.querySelector(document, 
+            '.righttablecard > table:nth-child(6) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1)'
+        );
+        
+        if (element) {
+            const html = DOMParser.extractHTML(element);
+            const ki12Match = html.match(/12\s*Ki\s*Multiplier[^0-9]*([0-9.]+)/i);
+            if (ki12Match) {
+                return ki12Match[1];
+            }
+        }
+        return undefined;
+    }
+
+    private static extractKi18Multiplier(document: Document): string | undefined {
+        const element = DOMParser.querySelector(document, 
+            '.righttablecard > table:nth-child(6) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1)'
+        );
+        
+        if (element) {
+            const html = DOMParser.extractHTML(element);
+            const ki18Match = html.match(/18\s*Ki\s*Multiplier[^0-9]*([0-9.]+)/i);
+            if (ki18Match) {
+                return ki18Match[1];
+            }
+        }
+        return undefined;
+    }
+
+    private static extractKi24Multiplier(document: Document): string | undefined {
+        const element = DOMParser.querySelector(document, 
+            '.righttablecard > table:nth-child(6) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1)'
+        );
+        
+        if (element) {
+            const html = DOMParser.extractHTML(element);
+            const ki24Match = html.match(/24\s*Ki\s*Multiplier[^0-9]*([0-9.]+)/i);
+            if (ki24Match) {
+                return ki24Match[1];
             }
         }
         return undefined;

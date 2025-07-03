@@ -16,7 +16,6 @@ export class DokkanScraperApp {
 
     constructor() {
         this.scraper = new DokkanScraper(DEFAULT_CONFIG);
-        this.ensureDirectories();
     }
 
     /**
@@ -26,8 +25,9 @@ export class DokkanScraperApp {
         const startTime = Date.now();
         
         try {
-            logger.info('Starting Dokkan character data scraper');
-            logger.info(`Configuration: ${JSON.stringify(DEFAULT_CONFIG, null, 2)}`);
+            await this.ensureDirectories();
+            await logger.info('Starting Dokkan character data scraper');
+            await logger.info(`Configuration: ${JSON.stringify(DEFAULT_CONFIG, null, 2)}`);
 
             const result = await this.scraper.scrapeAllCharacters();
             
@@ -35,10 +35,10 @@ export class DokkanScraperApp {
             await this.saveResults(fileName, result);
             
             const totalTime = (Date.now() - startTime) / 1000;
-            this.logFinalResults(result, fileName, totalTime);
+            await this.logFinalResults(result, fileName, totalTime);
 
         } catch (error) {
-            logger.error('Scraping failed with critical error:', error);
+            await logger.error('Scraping failed with critical error:', {}, error as Error);
             process.exit(1);
         } finally {
             this.scraper.destroy();
@@ -67,11 +67,11 @@ export class DokkanScraperApp {
                 { encoding: 'utf8' }
             );
 
-            logger.info(`Data saved to: ${filePath}`);
-            logger.info(`Characters-only data saved to: ${charactersOnlyPath}`);
+            await logger.info(`Data saved to: ${filePath}`);
+            await logger.info(`Characters-only data saved to: ${charactersOnlyPath}`);
 
         } catch (error) {
-            logger.error('Failed to save results:', error);
+            await logger.error('Failed to save results:', {}, error as Error);
             throw error;
         }
     }
@@ -93,7 +93,7 @@ export class DokkanScraperApp {
     /**
      * Ensure required directories exist
      */
-    private ensureDirectories(): void {
+    private async ensureDirectories(): Promise<void> {
         const directories = [
             resolve(__dirname, '../data'),
             resolve(__dirname, '../logs')
@@ -102,7 +102,7 @@ export class DokkanScraperApp {
         for (const dir of directories) {
             if (!existsSync(dir)) {
                 mkdirSync(dir, { recursive: true });
-                logger.info(`Created directory: ${dir}`);
+                await logger.info(`Created directory: ${dir}`);
             }
         }
     }
@@ -110,37 +110,37 @@ export class DokkanScraperApp {
     /**
      * Log final results and statistics
      */
-    private logFinalResults(result: ScrapingResult, fileName: string, totalTime: number): void {
+    private async logFinalResults(result: ScrapingResult, fileName: string, totalTime: number): Promise<void> {
         const { stats } = result;
         const avgRate = stats.totalCharacters / totalTime;
 
-        logger.info('Scraping completed successfully!');
-        logger.info(`Results:`);
-        logger.info(`   • Total characters: ${stats.totalCharacters}`);
-        logger.info(`   • Categories processed: ${stats.categoriesProcessed.length}`);
-        logger.info(`   • Processing time: ${totalTime.toFixed(2)}s`);
-        logger.info(`   • Average rate: ${avgRate.toFixed(1)} characters/second`);
-        logger.info(`   • Total errors: ${stats.errors.length}`);
-        logger.info(`Saved as: ${fileName}.json`);
+        await logger.info('Scraping completed successfully!');
+        await logger.info(`Results:`);
+        await logger.info(`   • Total characters: ${stats.totalCharacters}`);
+        await logger.info(`   • Categories processed: ${stats.categoriesProcessed.length}`);
+        await logger.info(`   • Processing time: ${totalTime.toFixed(2)}s`);
+        await logger.info(`   • Average rate: ${avgRate.toFixed(1)} characters/second`);
+        await logger.info(`   • Total errors: ${stats.errors.length}`);
+        await logger.info(`Saved as: ${fileName}.json`);
 
         if (stats.errors.length > 0) {
-            logger.warn(`${stats.errors.length} errors occurred during scraping`);
-            logger.info('Check error.log for details');
+            await logger.warn(`${stats.errors.length} errors occurred during scraping`);
+            await logger.info('Check error.log for details');
         }
 
         // Log performance metrics
         const httpStats = this.scraper.getStats();
-        logger.info(`HTTP Statistics:`);
-        logger.info(`   • Success rate: ${httpStats.successRate.toFixed(1)}%`);
-        logger.info(`   • Failed requests: ${httpStats.totalErrors}`);
+        await logger.info(`HTTP Statistics:`);
+        await logger.info(`   • Success rate: ${httpStats.successRate.toFixed(1)}%`);
+        await logger.info(`   • Failed requests: ${httpStats.totalErrors}`);
     }
 }
 
 // Self-executing when run directly
 if (import.meta.url === `file://${process.argv[1]}`) {
     const app = new DokkanScraperApp();
-    app.run().catch(error => {
-        logger.error('Application failed:', error);
+    app.run().catch(async (error) => {
+        await logger.error('Application failed:', {}, error as Error);
         process.exit(1);
     });
 }

@@ -23,7 +23,17 @@
       "Bash(npm test:*)",
       "Bash(BATCH_SIZE=3 timeout 30 npm run run)",
       "Bash(npm ls:*)",
-      "Bash(BATCH_SIZE=2 timeout 20 node lib/index.js)"
+      "Bash(BATCH_SIZE=2 timeout 20 node lib/index.js)",
+      "Bash(npm install:*)",
+      "Bash(hostname:*)",
+      "Bash(true)",
+      "Bash(npm update:*)",
+      "Bash(NODE_OPTIONS=\"--disable-warning=DEP0180\" npm run api)",
+      "Bash(curl:*)",
+      "Bash(mysql:*)",
+      "Bash(kill:*)",
+      "WebFetch(domain:dbz-dokkanbattle.fandom.com)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }

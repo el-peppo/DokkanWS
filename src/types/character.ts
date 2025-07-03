@@ -45,6 +45,9 @@ export interface Character {
     freeDupeDefence: number;
     rainbowDefence: number;
     kiMultiplier: string;
+    ki12Multiplier?: string;
+    ki18Multiplier?: string;
+    ki24Multiplier?: string;
     transformations?: Transformation[];
 }
 

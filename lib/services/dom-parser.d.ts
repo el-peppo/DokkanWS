@@ -2,11 +2,11 @@ export declare class DOMParser {
     /**
      * Parse HTML string into DOM Document
      */
-    static parseHTML(html: string): Document | null;
+    static parseHTML(html: string): Promise<Document | null>;
     /**
      * Extract character page links from category page
      */
-    static extractCharacterLinks(document: Document, baseUrl: string): string[];
+    static extractCharacterLinks(document: Document, baseUrl: string): Promise<string[]>;
     /**
      * Safely query a single element
      */
