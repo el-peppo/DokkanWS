@@ -189,7 +189,7 @@ CORELOG_REMOTE_PORT=9020
 
 ### Features
 
-- **Hybrid Logging**: Continues local winston logging while sending to corelog
+- **Remote-Only Logging**: When enabled, logs only to corelog server (winston on fallback)
 - **Structured Context**: Rich context data sent with each log entry
 - **Error Resilience**: Fallback to local logging if corelog server unavailable
 - **TCP Protocol**: Uses corelog's native TCP JSON protocol

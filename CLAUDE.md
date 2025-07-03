@@ -45,7 +45,7 @@ This is completely optional - the core scraper works independently and outputs J
 
 The project includes optional integration with corelog Python suite for centralized remote logging. Located in `src/utils/corelog-client.ts` and enhanced logging system:
 
-- **Hybrid Logging**: Continues local winston logging while sending structured logs to remote corelog server
+- **Remote-Only Logging**: When enabled, logs are sent only to the remote corelog server (with winston fallback on errors)
 - **TCP Protocol**: Uses corelog's native TCP JSON protocol for reliable transmission
 - **Rich Context**: Sends detailed scraping metrics and structured data for analysis
 - **Error Resilience**: Graceful fallback to local logging if corelog server unavailable

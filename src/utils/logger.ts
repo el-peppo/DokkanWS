@@ -48,15 +48,8 @@ class HybridLogger {
         }
     }
 
-    private async logToBoth(level: string, message: string, context?: Record<string, any>, error?: Error): Promise<void> {
-        // Always log to winston for local development
-        if (error) {
-            this.winston.log(level, message, { ...context, error: error.message, stack: error.stack });
-        } else {
-            this.winston.log(level, message, context);
-        }
-
-        // Also log to corelog if enabled
+    private async log(level: string, message: string, context?: Record<string, any>, error?: Error): Promise<void> {
+        // If corelog is enabled, only log to corelog
         if (this.useCorelog && this.corelog) {
             try {
                 switch (level) {
@@ -77,30 +70,43 @@ class HybridLogger {
                         break;
                 }
             } catch (err) {
-                // Corelog failed, but winston still logged it
+                // Corelog failed, fallback to winston
                 console.warn(`Corelog failed: ${err instanceof Error ? err.message : err}`);
+                // Fallback to winston when corelog fails
+                if (error) {
+                    this.winston.log(level, message, { ...context, error: error.message, stack: error.stack });
+                } else {
+                    this.winston.log(level, message, context);
+                }
+            }
+        } else {
+            // If corelog is not enabled, use winston
+            if (error) {
+                this.winston.log(level, message, { ...context, error: error.message, stack: error.stack });
+            } else {
+                this.winston.log(level, message, context);
             }
         }
     }
 
     async info(message: string, context?: Record<string, any>): Promise<void> {
-        await this.logToBoth('info', message, context);
+        await this.log('info', message, context);
     }
 
     async warn(message: string, context?: Record<string, any>): Promise<void> {
-        await this.logToBoth('warn', message, context);
+        await this.log('warn', message, context);
     }
 
     async error(message: string, context?: Record<string, any>, error?: Error): Promise<void> {
-        await this.logToBoth('error', message, context, error);
+        await this.log('error', message, context, error);
     }
 
     async debug(message: string, context?: Record<string, any>): Promise<void> {
-        await this.logToBoth('debug', message, context);
+        await this.log('debug', message, context);
     }
 
     async critical(message: string, context?: Record<string, any>, error?: Error): Promise<void> {
-        await this.logToBoth('critical', message, context, error);
+        await this.log('critical', message, context, error);
     }
 
     shutdown(): void {
