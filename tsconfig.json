@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
+    "module": "ES2022",
     "lib": ["ES2022"],
     "outDir": "./lib",
     "rootDir": "./src",
@@ -20,7 +20,7 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "exactOptionalPropertyTypes": true
+    "exactOptionalPropertyTypes": false
   },
   "include": [
     "src/**/*"
@@ -29,5 +29,8 @@
     "node_modules",
     "lib",
     "**/*.spec.ts"
-  ]
+  ],
+  "ts-node": {
+    "esm": true
+  }
 }

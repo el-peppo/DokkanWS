@@ -13,7 +13,11 @@
       "Bash(mkdir:*)",
       "Bash(cp:*)",
       "Bash(touch:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(BATCH_SIZE=3 npm run run)",
+      "Bash(timeout:*)",
+      "Bash(find:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }

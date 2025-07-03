@@ -2,28 +2,28 @@
 
 Advanced TypeScript web scraper for Dragon Ball Z Dokkan Battle character data extraction from the Fandom wiki.
 
-## ✨ What's New in v2.0
+## What's New in v2.0
 
-### 🚀 Performance Improvements
+### Performance Improvements
 - **Parallel processing**: Categories and character batches processed concurrently  
 - **Connection pooling**: HTTP keep-alive with optimized socket management
 - **Smart retry logic**: Exponential backoff with configurable retry attempts
 - **Batch processing**: Controlled concurrency to respect server limits
 
-### 🏗️ Modern Architecture
+### Modern Architecture
 - **Modular design**: Clean separation of concerns with dedicated services
 - **TypeScript strict mode**: Full type safety with modern TS 5.4
 - **Professional logging**: Winston-based structured logging with multiple outputs
 - **Configuration management**: Environment variables and structured config
 - **Error handling**: Comprehensive error tracking and reporting
 
-### 📊 Enhanced Features
+### Enhanced Features
 - **Real-time progress tracking**: Detailed progress reporting with ETA calculations
 - **Comprehensive statistics**: Success rates, timing metrics, and error analysis
 - **Multiple output formats**: Full metadata + characters-only for backward compatibility
 - **Memory efficient**: Optimized DOM parsing and garbage collection
 
-## 🛠️ Installation
+## Installation
 
 ```bash
 # Install dependencies (requires Node.js 18+)
@@ -36,7 +36,7 @@ cp .env.example .env
 npm run build
 ```
 
-## 🚀 Usage
+## Usage
 
 ### Quick Start
 ```bash
@@ -61,7 +61,7 @@ USER_AGENT="Mozilla/5.0 (compatible; DokkanScraper/2.0)"
 LOG_LEVEL=info
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
@@ -76,7 +76,7 @@ src/
 └── index.ts         # Application entry point
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests (193 test cases)
@@ -92,7 +92,7 @@ npm run lint
 npm run lint:fix
 ```
 
-## 📊 Output Format
+## Output Format
 
 The scraper generates two output files:
 
@@ -123,7 +123,7 @@ The scraper generates two output files:
 ]
 ```
 
-## 🔧 Architecture Details
+## Architecture Details
 
 ### HTTP Client
 - Connection pooling with keep-alive
@@ -143,7 +143,7 @@ The scraper generates two output files:
 - Progress tracking with ETA calculations
 - Performance metrics and statistics
 
-## 📈 Performance
+## Performance
 
 **v2.0 Performance Improvements:**
 - ~3x faster than v1.0 due to parallel processing
@@ -155,7 +155,7 @@ The scraper generates two output files:
 - ~20-30 characters per second average rate
 - <2% failure rate with retry logic
 
-## 🚨 Error Handling
+## Error Handling
 
 The scraper includes comprehensive error handling:
 - Network timeouts and connection failures
@@ -166,14 +166,14 @@ The scraper includes comprehensive error handling:
 
 All errors are logged with context and don't stop the overall scraping process.
 
-## 🔗 Backward Compatibility
+## Backward Compatibility
 
 The modernized codebase maintains compatibility with existing workflows:
 - Same output format for characters data
 - Compatible test expectations (193 passing tests)
 - Same CLI interface with `npm run run`
 
-## 📝 Development Notes
+## Development Notes
 
 This modernization focused on:
 - **Updated dependencies**: Latest axios, TypeScript 5.4, Node 18+

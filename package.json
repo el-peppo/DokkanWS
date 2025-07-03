@@ -2,6 +2,7 @@
   "name": "dokkan-web-scraper",
   "version": "2.0.0",
   "description": "Advanced TypeScript web scraper for Dragon Ball Z Dokkan Battle character data",
+  "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
@@ -13,7 +14,7 @@
     "prestart": "npm run build",
     "test": "mocha --require ts-node/register 'src/**/*.spec.ts'",
     "test:watch": "npm run test -- --watch",
-    "run": "npx ts-node src/index.ts",
+    "run": "node --loader ts-node/esm src/index.ts",
     "run:optimized": "npx ts-node src/index-optimized.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",

@@ -26,7 +26,7 @@ export class DokkanScraperApp {
         const startTime = Date.now();
         
         try {
-            logger.info('🚀 Starting Dokkan character data scraper');
+            logger.info('Starting Dokkan character data scraper');
             logger.info(`Configuration: ${JSON.stringify(DEFAULT_CONFIG, null, 2)}`);
 
             const result = await this.scraper.scrapeAllCharacters();
@@ -38,7 +38,7 @@ export class DokkanScraperApp {
             this.logFinalResults(result, fileName, totalTime);
 
         } catch (error) {
-            logger.error('❌ Scraping failed with critical error:', error);
+            logger.error('Scraping failed with critical error:', error);
             process.exit(1);
         } finally {
             this.scraper.destroy();
@@ -67,8 +67,8 @@ export class DokkanScraperApp {
                 { encoding: 'utf8' }
             );
 
-            logger.info(`💾 Data saved to: ${filePath}`);
-            logger.info(`💾 Characters-only data saved to: ${charactersOnlyPath}`);
+            logger.info(`Data saved to: ${filePath}`);
+            logger.info(`Characters-only data saved to: ${charactersOnlyPath}`);
 
         } catch (error) {
             logger.error('Failed to save results:', error);
@@ -102,7 +102,7 @@ export class DokkanScraperApp {
         for (const dir of directories) {
             if (!existsSync(dir)) {
                 mkdirSync(dir, { recursive: true });
-                logger.info(`📁 Created directory: ${dir}`);
+                logger.info(`Created directory: ${dir}`);
             }
         }
     }
@@ -114,23 +114,23 @@ export class DokkanScraperApp {
         const { stats } = result;
         const avgRate = stats.totalCharacters / totalTime;
 
-        logger.info('✅ Scraping completed successfully!');
-        logger.info(`📊 Results:`);
+        logger.info('Scraping completed successfully!');
+        logger.info(`Results:`);
         logger.info(`   • Total characters: ${stats.totalCharacters}`);
         logger.info(`   • Categories processed: ${stats.categoriesProcessed.length}`);
         logger.info(`   • Processing time: ${totalTime.toFixed(2)}s`);
         logger.info(`   • Average rate: ${avgRate.toFixed(1)} characters/second`);
         logger.info(`   • Total errors: ${stats.errors.length}`);
-        logger.info(`📁 Saved as: ${fileName}.json`);
+        logger.info(`Saved as: ${fileName}.json`);
 
         if (stats.errors.length > 0) {
-            logger.warn(`⚠️  ${stats.errors.length} errors occurred during scraping`);
+            logger.warn(`${stats.errors.length} errors occurred during scraping`);
             logger.info('Check error.log for details');
         }
 
         // Log performance metrics
         const httpStats = this.scraper.getStats();
-        logger.info(`🌐 HTTP Statistics:`);
+        logger.info(`HTTP Statistics:`);
         logger.info(`   • Success rate: ${httpStats.successRate.toFixed(1)}%`);
         logger.info(`   • Failed requests: ${httpStats.totalErrors}`);
     }
