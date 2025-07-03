@@ -25,8 +25,16 @@
       "Bash(NODE_ENV=development node test-verbose.js)",
       "Bash(CORELOG_ENABLED=true NODE_ENV=development node debug-env.js)",
       "Bash(CORELOG_ENABLED=true CORELOG_REMOTE_HOST=localhost CORELOG_REMOTE_PORT=9999 NODE_ENV=development node test-verbose.js)",
+      "Bash(git merge:*)",
       "WebFetch(domain:dragonball.fandom.com)",
-      "WebFetch(domain:dokkan.wiki)"
+      "WebFetch(domain:dokkan.wiki)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(sudo systemctl start:*)",
+      "Bash(sudo systemctl:*)",
+      "Bash(sudo mysql:*)",
+      "Bash(mv:*)",
+      "Bash(pkill:*)"
     ],
     "deny": []
   }
