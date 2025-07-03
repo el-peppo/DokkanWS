@@ -459,7 +459,7 @@ class DokkanApp {
                         <i class="f7-icons">bolt</i> Passive Skill
                     </div>
                     <div class="detail-section-content">
-                        ${character.passive}
+                        ${this.formatPassiveSkill(character.passive)}
                     </div>
                 </div>
             `;
@@ -508,6 +508,30 @@ class DokkanApp {
         return html;
     }
 
+    formatPassiveSkill(passiveText) {
+        console.log('Formatting passive skill:', passiveText);
+        
+        if (!passiveText || passiveText === 'Error') {
+            return passiveText;
+        }
+        
+        // Split by semicolon and create bullet points
+        const parts = passiveText.split(';').map(part => part.trim()).filter(part => part.length > 0);
+        
+        console.log('Split parts:', parts);
+        
+        if (parts.length <= 1) {
+            return passiveText; // Return original if no semicolons found
+        }
+        
+        const formatted = '<ul class="passive-bullets">' + 
+               parts.map(part => `<li>${part}</li>`).join('') + 
+               '</ul>';
+        
+        console.log('Formatted passive:', formatted);
+        return formatted;
+    }
+
     createTransformationHTML(transformation) {
         const imageUrl = transformation.transformed_image_url && transformation.transformed_image_url !== 'Error' 
             ? transformation.transformed_image_url 
@@ -538,7 +562,7 @@ class DokkanApp {
                 ${transformation.transformed_passive && transformation.transformed_passive !== 'Error' ? 
                     `<div class="skill-item">
                         <div class="skill-name">Passive Skill</div>
-                        <div class="skill-description">${transformation.transformed_passive}</div>
+                        <div class="skill-description">${this.formatPassiveSkill(transformation.transformed_passive)}</div>
                     </div>` : ''
                 }
             </div>

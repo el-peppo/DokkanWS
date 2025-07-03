@@ -35,6 +35,24 @@
         // Theme Context
         const ThemeContext = createContext();
         
+        // Utility function to format passive skills
+        function formatPassiveSkill(passiveText) {
+            if (!passiveText || passiveText === 'Error') {
+                return passiveText;
+            }
+            
+            // Split by semicolon and create bullet points
+            const parts = passiveText.split(';').map(part => part.trim()).filter(part => part.length > 0);
+            
+            if (parts.length <= 1) {
+                return passiveText; // Return original if no semicolons found
+            }
+            
+            return parts.map((part, index) => 
+                React.createElement('li', { key: index }, part)
+            );
+        }
+        
         // Theme Provider
         function ThemeProvider({ children }) {
             const [theme, setTheme] = useState(() => {
@@ -681,7 +699,15 @@
                                     return passive && passive !== 'Error' && (
                                         <div className="skill-section">
                                             <h4>Passive Skill {awakening !== 'base' && `(${awakening.toUpperCase()})`}</h4>
-                                            <p>{passive}</p>
+                                            <div className="passive-content">
+                                                {(() => {
+                                                    const formatted = formatPassiveSkill(passive);
+                                                    if (Array.isArray(formatted)) {
+                                                        return React.createElement('ul', { className: 'passive-bullets' }, formatted);
+                                                    }
+                                                    return React.createElement('p', null, formatted);
+                                                })()}
+                                            </div>
                                         </div>
                                     );
                                 })()}
@@ -723,7 +749,18 @@
                                                     <h5>Transform {index + 1}: {transform.name}</h5>
                                                     <div className="transformation-details">
                                                         {transform.condition && <p><strong>Condition:</strong> {transform.condition}</p>}
-                                                        {transform.passive && <p><strong>Passive:</strong> {transform.passive}</p>}
+                                                        {transform.passive && (
+                                                            <div>
+                                                                <strong>Passive:</strong> 
+                                                                {(() => {
+                                                                    const formatted = formatPassiveSkill(transform.passive);
+                                                                    if (Array.isArray(formatted)) {
+                                                                        return React.createElement('ul', { className: 'passive-bullets' }, formatted);
+                                                                    }
+                                                                    return React.createElement('span', null, ` ${formatted}`);
+                                                                })()}
+                                                            </div>
+                                                        )}
                                                         {transform.super_attack && <p><strong>Super Attack:</strong> {transform.super_attack}</p>}
                                                     </div>
                                                 </div>
@@ -1224,7 +1261,16 @@
                                     </div>
                                     <div className="skill-preview">
                                         <h5>Passive</h5>
-                                        <p>{character.passive || 'N/A'}</p>
+                                        <div className="passive-content">
+                                            {(() => {
+                                                const passive = character.passive || 'N/A';
+                                                const formatted = formatPassiveSkill(passive);
+                                                if (Array.isArray(formatted)) {
+                                                    return React.createElement('ul', { className: 'passive-bullets' }, formatted);
+                                                }
+                                                return React.createElement('p', null, formatted);
+                                            })()}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

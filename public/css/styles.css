@@ -892,6 +892,23 @@ body {
     animation: spin 1s linear infinite;
 }
 
+/* Passive Skill Bullet Points */
+.passive-bullets {
+    margin: 0;
+    padding-left: 1.5rem;
+    list-style-type: disc;
+}
+
+.passive-bullets li {
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+}
+
+.passive-bullets li:last-child {
+    margin-bottom: 0;
+}
+
 /* Smooth Scrolling */
 html {
     scroll-behavior: smooth;

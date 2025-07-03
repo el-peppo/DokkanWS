@@ -42,7 +42,9 @@
       "Bash(git merge:*)",
       "Bash(git branch:*)",
       "Bash(git push:*)",
-      "Bash(jq:*)"
+      "Bash(jq:*)",
+      "Bash(strace:*)",
+      "Bash(sudo chown:*)"
     ],
     "deny": []
   }
