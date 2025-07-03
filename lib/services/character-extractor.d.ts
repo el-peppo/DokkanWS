@@ -14,6 +14,7 @@ export declare class CharacterExtractor {
     private static extractCost;
     private static extractId;
     private static extractImageURL;
+    private static extractFullImageURL;
     private static extractSkillByImage;
     private static extractLeaderSkill;
     private static extractEZALeaderSkill;
@@ -49,6 +50,7 @@ export declare class CharacterExtractor {
     private static extractTransformationActiveSkillCondition;
     private static extractTransformationLinks;
     private static extractTransformationImageURL;
+    private static extractTransformationFullImageURL;
     private static extractSEZALeaderSkill;
     private static extractSEZASuperAttack;
     private static extractSEZAUltraSuperAttack;
@@ -58,5 +60,8 @@ export declare class CharacterExtractor {
     private static extractTransformationSEZASuperAttack;
     private static extractTransformationSEZAUltraSuperAttack;
     private static extractTransformationSEZAPassive;
+    private static extractKi12Multiplier;
+    private static extractKi18Multiplier;
+    private static extractKi24Multiplier;
 }
 //# sourceMappingURL=character-extractor.d.ts.map

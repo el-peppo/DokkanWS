@@ -101,10 +101,10 @@ export class JsonImporter {
                 image_url, full_image_url, leader_skill, eza_leader_skill, seza_leader_skill, super_attack, eza_super_attack, seza_super_attack,
                 ultra_super_attack, eza_ultra_super_attack, seza_ultra_super_attack, passive, eza_passive, seza_passive,
                 active_skill, active_skill_condition, eza_active_skill, eza_active_skill_condition, seza_active_skill, seza_active_skill_condition,
-                transformation_condition, ki_multiplier, base_hp, max_level_hp, free_dupe_hp,
-                rainbow_hp, base_attack, max_level_attack, free_dupe_attack, rainbow_attack,
+                transformation_condition, ki_multiplier, ki_12_multiplier, ki_18_multiplier, ki_24_multiplier,
+                base_hp, max_level_hp, free_dupe_hp, rainbow_hp, base_attack, max_level_attack, free_dupe_attack, rainbow_attack,
                 base_defence, max_defence, free_dupe_defence, rainbow_defence
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const values = [
@@ -139,6 +139,9 @@ export class JsonImporter {
             character.sezaActiveSkillCondition || null,
             character.transformationCondition || null,
             character.kiMultiplier !== 'Error' ? character.kiMultiplier : null,
+            character.ki12Multiplier || null,
+            character.ki18Multiplier || null,
+            character.ki24Multiplier || null,
             character.baseHP,
             character.maxLevelHP,
             character.freeDupeHP,

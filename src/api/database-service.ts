@@ -81,7 +81,12 @@ export class DatabaseService {
                     c.super_attack, c.passive, c.active_skill, c.transformation_condition,
                     c.base_hp, c.max_level_hp, c.rainbow_hp,
                     c.base_attack, c.max_level_attack, c.rainbow_attack,
-                    c.base_defence, c.max_defence, c.rainbow_defence
+                    c.base_defence, c.max_defence, c.rainbow_defence,
+                    c.ki_multiplier, c.ki_12_multiplier, c.ki_18_multiplier, c.ki_24_multiplier,
+                    c.eza_leader_skill, c.eza_super_attack, c.eza_ultra_super_attack, c.eza_passive,
+                    c.eza_active_skill, c.eza_active_skill_condition,
+                    c.seza_leader_skill, c.seza_super_attack, c.seza_ultra_super_attack, c.seza_passive,
+                    c.seza_active_skill, c.seza_active_skill_condition
                 FROM characters c 
                 ${whereClause}
                 ${orderClause}

@@ -3,7 +3,7 @@ declare class HybridLogger {
     private corelog;
     private useCorelog;
     constructor();
-    private logToBoth;
+    private log;
     info(message: string, context?: Record<string, any>): Promise<void>;
     warn(message: string, context?: Record<string, any>): Promise<void>;
     error(message: string, context?: Record<string, any>, error?: Error): Promise<void>;

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokkan Character Database</title>
+    
+    <!-- Modern CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- React and React DOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- Socket.io -->
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <!-- API Client -->
+    <script src="js/api.js?v=4"></script>
+    
+    <!-- React App -->
+    <script type="text/babel">
+        const { useState, useEffect, useContext, createContext, useCallback } = React;
+        
+        // Context for managing app state
+        const AppContext = createContext();
+        
+        // App State Provider
+        function AppProvider({ children }) {
+            const [characters, setCharacters] = useState([]);
+            const [filters, setFilters] = useState({});
+            const [currentFilters, setCurrentFilters] = useState({});
+            const [stats, setStats] = useState({});
+            const [loading, setLoading] = useState(false);
+            const [pagination, setPagination] = useState({});
+            const [selectedCharacter, setSelectedCharacter] = useState(null);
+            
+            const searchCharacters = useCallback(async (reset = false, page = 1) => {
+                if (loading) return;
+                
+                try {
+                    setLoading(true);
+                    
+                    const params = new URLSearchParams({
+                        page,
+                        limit: 20,
+                        ...currentFilters
+                    });
+                    
+                    const response = await fetch(`/api/characters?${params}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (reset) {
+                            setCharacters(data.data.characters);
+                            setFilters(data.data.filters);
+                        } else {
+                            setCharacters(prev => [...prev, ...data.data.characters]);
+                        }
+                        setPagination(data.data.pagination);
+                    }
+                } catch (error) {
+                    console.error('Search failed:', error);
+                } finally {
+                    setLoading(false);
+                }
+            }, [currentFilters, loading]);
+            
+            const loadStats = useCallback(async () => {
+                try {
+                    const response = await fetch('/api/characters/stats/summary');
+                    const data = await response.json();
+                    if (data.success) {
+                        setStats(data.data);
+                    }
+                } catch (error) {
+                    console.error('Failed to load stats:', error);
+                }
+            }, []);
+            
+            useEffect(() => {
+                loadStats();
+                searchCharacters(true);
+            }, []);
+            
+            useEffect(() => {
+                searchCharacters(true);
+            }, [currentFilters]);
+            
+            const value = {
+                characters,
+                filters,
+                currentFilters,
+                setCurrentFilters,
+                stats,
+                loading,
+                pagination,
+                selectedCharacter,
+                setSelectedCharacter,
+                searchCharacters,
+                loadStats
+            };
+            
+            return React.createElement(AppContext.Provider, { value }, children);
+        }
+        
+        // Custom hook to use app context
+        function useApp() {
+            const context = useContext(AppContext);
+            if (!context) {
+                throw new Error('useApp must be used within AppProvider');
+            }
+            return context;
+        }
+        
+        // Stats Component
+        function StatsBar() {
+            const { stats } = useApp();
+            
+            return (
+                <div className="stats-container">
+                    <div className="stat-card">
+                        <div className="stat-value">{stats.totalCharacters || 0}</div>
+                        <div className="stat-label">Characters</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value">{stats.totalCategories || 0}</div>
+                        <div className="stat-label">Categories</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value">{stats.lastUpdate ? 'Today' : 'Never'}</div>
+                        <div className="stat-label">Last Update</div>
+                    </div>
+                </div>
+            );
+        }
+        
+        // Search and Filter Component
+        function SearchFilters() {
+            const { filters, currentFilters, setCurrentFilters } = useApp();
+            const [searchTimeout, setSearchTimeout] = useState(null);
+            
+            const handleSearch = (value) => {
+                if (searchTimeout) clearTimeout(searchTimeout);
+                const timeout = setTimeout(() => {
+                    setCurrentFilters(prev => ({ ...prev, search: value }));
+                }, 300);
+                setSearchTimeout(timeout);
+            };
+            
+            const handleRarityFilter = (rarity) => {
+                setCurrentFilters(prev => ({ ...prev, rarity }));
+            };
+            
+            const handleFilterChange = (key, value) => {
+                setCurrentFilters(prev => ({ ...prev, [key]: value }));
+            };
+            
+            return (
+                <div className="search-filters">
+                    <div className="search-bar">
+                        <i className="fas fa-search"></i>
+                        <input 
+                            type="text" 
+                            placeholder="Search characters..."
+                            onChange={(e) => handleSearch(e.target.value)}
+                        />
+                    </div>
+                    
+                    <div className="rarity-filters">
+                        {['', 'LR', 'UR', 'SSR', 'SR', 'R', 'N'].map(rarity => (
+                            <button 
+                                key={rarity || 'all'}
+                                className={`rarity-btn ${currentFilters.rarity === rarity ? 'active' : ''}`}
+                                onClick={() => handleRarityFilter(rarity)}
+                            >
+                                {rarity || 'All'}
+                            </button>
+                        ))}
+                    </div>
+                    
+                    <div className="filter-selects">
+                        <select onChange={(e) => handleFilterChange('type', e.target.value)}>
+                            <option value="">All Types</option>
+                            {(filters.types || []).map(type => (
+                                <option key={type} value={type}>{type}</option>
+                            ))}
+                        </select>
+                        
+                        <select onChange={(e) => handleFilterChange('class', e.target.value)}>
+                            <option value="">All Classes</option>
+                            {(filters.classes || []).map(cls => (
+                                <option key={cls} value={cls}>{cls}</option>
+                            ))}
+                        </select>
+                        
+                        <select onChange={(e) => handleFilterChange('category', e.target.value)}>
+                            <option value="">All Categories</option>
+                            {(filters.categories || []).slice(0, 50).map(category => (
+                                <option key={category} value={category}>{category}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+            );
+        }
+        
+        // Character Card Component
+        function CharacterCard({ character }) {
+            const { setSelectedCharacter } = useApp();
+            
+            const imageUrl = character.image_url && character.image_url !== 'Error' ? character.image_url : null;
+            
+            return (
+                <div className="character-card" onClick={() => setSelectedCharacter(character)}>
+                    <div className="character-image">
+                        {imageUrl ? (
+                            <img src={imageUrl} alt={character.name} loading="lazy" />
+                        ) : (
+                            <div className="no-image">
+                                <i className="fas fa-user"></i>
+                            </div>
+                        )}
+                        <div className={`rarity-badge rarity-${character.rarity}`}>
+                            {character.rarity}
+                        </div>
+                    </div>
+                    
+                    <div className="character-info">
+                        <h3 className="character-name">{character.name}</h3>
+                        <p className="character-title">{character.title}</p>
+                        
+                        <div className="character-meta">
+                            <span className={`badge type-${character.type}`}>{character.type}</span>
+                            <span className={`badge class-${character.class}`}>{character.class}</span>
+                            <span className="badge cost">Cost: {character.cost}</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        // Character Grid Component
+        function CharacterGrid() {
+            const { characters, loading, pagination, searchCharacters } = useApp();
+            
+            const loadMore = () => {
+                if (pagination.hasNext && !loading) {
+                    searchCharacters(false, pagination.page + 1);
+                }
+            };
+            
+            return (
+                <div className="character-section">
+                    <div className="results-info">
+                        <span>{pagination.total || 0} characters found</span>
+                        {loading && <i className="fas fa-spinner fa-spin"></i>}
+                    </div>
+                    
+                    <div className="character-grid">
+                        {characters.map(character => (
+                            <CharacterCard key={character.id} character={character} />
+                        ))}
+                    </div>
+                    
+                    {pagination.hasNext && (
+                        <div className="load-more">
+                            <button onClick={loadMore} disabled={loading}>
+                                {loading ? 'Loading...' : 'Load More'}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        
+        // Character Modal Component
+        function CharacterModal() {
+            const { selectedCharacter, setSelectedCharacter } = useApp();
+            const [awakening, setAwakening] = React.useState('base'); // 'base', 'eza', 'seza'
+            
+            if (!selectedCharacter) return null;
+            
+            const closeModal = () => {
+                setSelectedCharacter(null);
+                setAwakening('base');
+            };
+            
+            // Check if character has EZA/SEZA data
+            const hasEza = selectedCharacter.eza_leader_skill || selectedCharacter.eza_super_attack || selectedCharacter.eza_passive;
+            const hasSeza = selectedCharacter.seza_leader_skill || selectedCharacter.seza_super_attack || selectedCharacter.seza_passive;
+            
+            // Get current skill data based on awakening state
+            const getCurrentSkill = (base, eza, seza) => {
+                if (awakening === 'seza' && seza && seza !== 'Error') return seza;
+                if (awakening === 'eza' && eza && eza !== 'Error') return eza;
+                return base;
+            };
+            
+            // Use the full image URL from database, fallback to converted thumbnail URL
+            const fullSizeImageUrl = selectedCharacter.full_image_url || 
+                (selectedCharacter.image_url && selectedCharacter.image_url !== 'Error' ? 
+                selectedCharacter.image_url.replace('thumb_apng.png', 'apng.png') : null);
+            
+            return (
+                <div className="modal-overlay" onClick={closeModal}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        {fullSizeImageUrl && (
+                            <div 
+                                className="modal-backdrop" 
+                                style={{backgroundImage: `url(${fullSizeImageUrl})`}}
+                            ></div>
+                        )}
+                        <div className="modal-header">
+                            <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+                                <h2>{selectedCharacter.name}</h2>
+                                {(hasEza || hasSeza) && (
+                                    <div style={{display: 'flex', gap: '0.5rem'}}>
+                                        <button 
+                                            onClick={() => setAwakening('base')}
+                                            style={{
+                                                padding: '0.25rem 0.75rem',
+                                                borderRadius: '15px',
+                                                border: 'none',
+                                                background: awakening === 'base' ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                                                color: awakening === 'base' ? '#667eea' : 'white',
+                                                fontWeight: '600',
+                                                fontSize: '0.8rem',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            Base
+                                        </button>
+                                        {hasEza && (
+                                            <button 
+                                                onClick={() => setAwakening('eza')}
+                                                style={{
+                                                    padding: '0.25rem 0.75rem',
+                                                    borderRadius: '15px',
+                                                    border: 'none',
+                                                    background: awakening === 'eza' ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                                                    color: awakening === 'eza' ? '#667eea' : 'white',
+                                                    fontWeight: '600',
+                                                    fontSize: '0.8rem',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                EZA
+                                            </button>
+                                        )}
+                                        {hasSeza && (
+                                            <button 
+                                                onClick={() => setAwakening('seza')}
+                                                style={{
+                                                    padding: '0.25rem 0.75rem',
+                                                    borderRadius: '15px',
+                                                    border: 'none',
+                                                    background: awakening === 'seza' ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                                                    color: awakening === 'seza' ? '#667eea' : 'white',
+                                                    fontWeight: '600',
+                                                    fontSize: '0.8rem',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                SEZA
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            <button className="close-btn" onClick={closeModal}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div className="modal-body">
+                            <div className="character-details">
+                                {selectedCharacter.image_url && selectedCharacter.image_url !== 'Error' && (
+                                    <img src={selectedCharacter.image_url} alt={selectedCharacter.name} />
+                                )}
+                                
+                                <div className="details-grid">
+                                    <div className="detail-item">
+                                        <label>Title:</label>
+                                        <span>{selectedCharacter.title}</span>
+                                    </div>
+                                    <div className="detail-item">
+                                        <label>Rarity:</label>
+                                        <span>{selectedCharacter.rarity}</span>
+                                    </div>
+                                    <div className="detail-item">
+                                        <label>Type:</label>
+                                        <span>{selectedCharacter.type}</span>
+                                    </div>
+                                    <div className="detail-item">
+                                        <label>Class:</label>
+                                        <span>{selectedCharacter.class}</span>
+                                    </div>
+                                    <div className="detail-item">
+                                        <label>Cost:</label>
+                                        <span>{selectedCharacter.cost}</span>
+                                    </div>
+                                    <div className="detail-item">
+                                        <label>Max Level:</label>
+                                        <span>{selectedCharacter.max_level}</span>
+                                    </div>
+                                </div>
+                                
+                                {/* Stats Section */}
+                                <div className="skill-section">
+                                    <h4>Stats {awakening !== 'base' && `(${awakening.toUpperCase()})`}</h4>
+                                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem'}}>
+                                        <div style={{
+                                            background: '#f8f9fa',
+                                            padding: '1rem',
+                                            borderRadius: '8px',
+                                            border: '2px solid #e74c3c'
+                                        }}>
+                                            <h5 style={{color: '#e74c3c', marginBottom: '0.5rem', textAlign: 'center'}}>❤️ HP</h5>
+                                            <div style={{fontSize: '0.85rem'}}>
+                                                <div>Base: {selectedCharacter.base_hp?.toLocaleString() || 'N/A'}</div>
+                                                <div>Max Lv: {selectedCharacter.max_level_hp?.toLocaleString() || 'N/A'}</div>
+                                                <div>Free Dupe: {selectedCharacter.free_dupe_hp?.toLocaleString() || 'N/A'}</div>
+                                                <div style={{fontWeight: 'bold', color: '#e74c3c'}}>Rainbow: {selectedCharacter.rainbow_hp?.toLocaleString() || 'N/A'}</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style={{
+                                            background: '#f8f9fa',
+                                            padding: '1rem',
+                                            borderRadius: '8px',
+                                            border: '2px solid #f39c12'
+                                        }}>
+                                            <h5 style={{color: '#f39c12', marginBottom: '0.5rem', textAlign: 'center'}}>⚔️ ATK</h5>
+                                            <div style={{fontSize: '0.85rem'}}>
+                                                <div>Base: {selectedCharacter.base_attack?.toLocaleString() || 'N/A'}</div>
+                                                <div>Max Lv: {selectedCharacter.max_level_attack?.toLocaleString() || 'N/A'}</div>
+                                                <div>Free Dupe: {selectedCharacter.free_dupe_attack?.toLocaleString() || 'N/A'}</div>
+                                                <div style={{fontWeight: 'bold', color: '#f39c12'}}>Rainbow: {selectedCharacter.rainbow_attack?.toLocaleString() || 'N/A'}</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style={{
+                                            background: '#f8f9fa',
+                                            padding: '1rem',
+                                            borderRadius: '8px',
+                                            border: '2px solid #3498db'
+                                        }}>
+                                            <h5 style={{color: '#3498db', marginBottom: '0.5rem', textAlign: 'center'}}>🛡️ DEF</h5>
+                                            <div style={{fontSize: '0.85rem'}}>
+                                                <div>Base: {selectedCharacter.base_defence?.toLocaleString() || 'N/A'}</div>
+                                                <div>Max Lv: {selectedCharacter.max_defence?.toLocaleString() || 'N/A'}</div>
+                                                <div>Free Dupe: {selectedCharacter.free_dupe_defence?.toLocaleString() || 'N/A'}</div>
+                                                <div style={{fontWeight: 'bold', color: '#3498db'}}>Rainbow: {selectedCharacter.rainbow_defence?.toLocaleString() || 'N/A'}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {(() => {
+                                    const leaderSkill = getCurrentSkill(
+                                        selectedCharacter.leader_skill,
+                                        selectedCharacter.eza_leader_skill,
+                                        selectedCharacter.seza_leader_skill
+                                    );
+                                    return leaderSkill && leaderSkill !== 'Error' && (
+                                        <div className="skill-section">
+                                            <h4>Leader Skill {awakening !== 'base' && `(${awakening.toUpperCase()})`}</h4>
+                                            <p>{leaderSkill}</p>
+                                        </div>
+                                    );
+                                })()}
+                                
+                                {(() => {
+                                    const superAttack = getCurrentSkill(
+                                        selectedCharacter.super_attack,
+                                        selectedCharacter.eza_super_attack,
+                                        selectedCharacter.seza_super_attack
+                                    );
+                                    return superAttack && superAttack !== 'Error' && (
+                                        <div className="skill-section">
+                                            <h4>Super Attack {awakening !== 'base' && `(${awakening.toUpperCase()})`}</h4>
+                                            <p>{superAttack}</p>
+                                        </div>
+                                    );
+                                })()}
+                                
+                                {(() => {
+                                    const ultraSuperAttack = getCurrentSkill(
+                                        selectedCharacter.ultra_super_attack,
+                                        selectedCharacter.eza_ultra_super_attack,
+                                        selectedCharacter.seza_ultra_super_attack
+                                    );
+                                    return ultraSuperAttack && ultraSuperAttack !== 'Error' && (
+                                        <div className="skill-section">
+                                            <h4>Ultra Super Attack {awakening !== 'base' && `(${awakening.toUpperCase()})`}</h4>
+                                            <p>{ultraSuperAttack}</p>
+                                        </div>
+                                    );
+                                })()}
+                                
+                                {(() => {
+                                    const passive = getCurrentSkill(
+                                        selectedCharacter.passive,
+                                        selectedCharacter.eza_passive,
+                                        selectedCharacter.seza_passive
+                                    );
+                                    return passive && passive !== 'Error' && (
+                                        <div className="skill-section">
+                                            <h4>Passive Skill {awakening !== 'base' && `(${awakening.toUpperCase()})`}</h4>
+                                            <p>{passive}</p>
+                                        </div>
+                                    );
+                                })()}
+                                
+                                {(() => {
+                                    const activeSkill = getCurrentSkill(
+                                        selectedCharacter.active_skill,
+                                        selectedCharacter.eza_active_skill,
+                                        selectedCharacter.seza_active_skill
+                                    );
+                                    return activeSkill && activeSkill !== 'Error' && (
+                                        <div className="skill-section">
+                                            <h4>Active Skill {awakening !== 'base' && `(${awakening.toUpperCase()})`}</h4>
+                                            <p>{activeSkill}</p>
+                                        </div>
+                                    );
+                                })()}
+                                
+                                {selectedCharacter.links && selectedCharacter.links.length > 0 && (
+                                    <div className="skill-section">
+                                        <h4>Link Skills</h4>
+                                        <div style={{display: 'flex', flexWrap: 'wrap', gap: '0.5rem'}}>
+                                            {selectedCharacter.links.map((link, index) => (
+                                                <span key={index} style={{
+                                                    padding: '0.25rem 0.75rem',
+                                                    backgroundColor: '#667eea',
+                                                    color: 'white',
+                                                    borderRadius: '12px',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: '500'
+                                                }}>
+                                                    {link}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {selectedCharacter.categories && selectedCharacter.categories.length > 0 && (
+                                    <div className="skill-section">
+                                        <h4>Categories</h4>
+                                        <div style={{display: 'flex', flexWrap: 'wrap', gap: '0.5rem'}}>
+                                            {selectedCharacter.categories.map((category, index) => (
+                                                <span key={index} style={{
+                                                    padding: '0.25rem 0.75rem',
+                                                    backgroundColor: '#764ba2',
+                                                    color: 'white',
+                                                    borderRadius: '12px',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: '500'
+                                                }}>
+                                                    {category}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        // Header Component
+        function Header() {
+            const { loadStats } = useApp();
+            
+            const triggerUpdate = async () => {
+                try {
+                    const response = await fetch('/api/scrape/trigger', { method: 'POST' });
+                    const data = await response.json();
+                    if (data.success) {
+                        alert('Database update started!');
+                        setTimeout(loadStats, 2000);
+                    } else {
+                        alert('Update failed: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    alert('Update failed: ' + error.message);
+                }
+            };
+            
+            return (
+                <header className="app-header">
+                    <div className="header-content">
+                        <h1>🐉 Dokkan Database</h1>
+                        <button className="update-btn" onClick={triggerUpdate}>
+                            <i className="fas fa-sync-alt"></i>
+                            Update
+                        </button>
+                    </div>
+                </header>
+            );
+        }
+        
+        // Main App Component
+        function App() {
+            return (
+                <AppProvider>
+                    <div className="app">
+                        <Header />
+                        <main className="main-content">
+                            <StatsBar />
+                            <SearchFilters />
+                            <CharacterGrid />
+                        </main>
+                        <CharacterModal />
+                    </div>
+                </AppProvider>
+            );
+        }
+        
+        // Render the app
+        ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    </script>
+</body>
+</html>

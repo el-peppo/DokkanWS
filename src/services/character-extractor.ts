@@ -65,6 +65,9 @@ export class CharacterExtractor {
                 freeDupeDefence: this.extractBaseStat(document, 'Defence', 4),
                 rainbowDefence: this.extractBaseStat(document, 'Defence', 5),
                 kiMultiplier: this.extractKiMultiplier(document),
+                ki12Multiplier: this.extractKi12Multiplier(document),
+                ki18Multiplier: this.extractKi18Multiplier(document),
+                ki24Multiplier: this.extractKi24Multiplier(document),
                 transformations: transformations.length > 0 ? transformations : undefined
             };
 
@@ -901,6 +904,51 @@ export class CharacterExtractor {
                 const nextRow = DOMParser.getNextSibling(row);
                 const text = DOMParser.extractText(nextRow, '');
                 if (text && text !== 'Error') return cleanPassiveText(text);
+            }
+        }
+        return undefined;
+    }
+
+    private static extractKi12Multiplier(document: Document): string | undefined {
+        const element = DOMParser.querySelector(document, 
+            '.righttablecard > table:nth-child(6) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1)'
+        );
+        
+        if (element) {
+            const html = DOMParser.extractHTML(element);
+            const ki12Match = html.match(/12\s*Ki\s*Multiplier[^0-9]*([0-9.]+)/i);
+            if (ki12Match) {
+                return ki12Match[1];
+            }
+        }
+        return undefined;
+    }
+
+    private static extractKi18Multiplier(document: Document): string | undefined {
+        const element = DOMParser.querySelector(document, 
+            '.righttablecard > table:nth-child(6) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1)'
+        );
+        
+        if (element) {
+            const html = DOMParser.extractHTML(element);
+            const ki18Match = html.match(/18\s*Ki\s*Multiplier[^0-9]*([0-9.]+)/i);
+            if (ki18Match) {
+                return ki18Match[1];
+            }
+        }
+        return undefined;
+    }
+
+    private static extractKi24Multiplier(document: Document): string | undefined {
+        const element = DOMParser.querySelector(document, 
+            '.righttablecard > table:nth-child(6) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1)'
+        );
+        
+        if (element) {
+            const html = DOMParser.extractHTML(element);
+            const ki24Match = html.match(/24\s*Ki\s*Multiplier[^0-9]*([0-9.]+)/i);
+            if (ki24Match) {
+                return ki24Match[1];
             }
         }
         return undefined;

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokkan API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .character { border: 1px solid #ccc; margin: 10px 0; padding: 10px; }
+        .loading { color: blue; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Dokkan API Test</h1>
+    
+    <div id="status">Loading...</div>
+    
+    <h2>Statistics</h2>
+    <div id="stats"></div>
+    
+    <h2>Characters</h2>
+    <div id="characters"></div>
+    
+    <script>
+        console.log('Test page loaded');
+        
+        async function testAPI() {
+            const statusEl = document.getElementById('status');
+            const statsEl = document.getElementById('stats');
+            const charactersEl = document.getElementById('characters');
+            
+            try {
+                statusEl.textContent = 'Testing API connection...';
+                statusEl.className = 'loading';
+                
+                // Test stats endpoint
+                console.log('Fetching stats...');
+                const statsResponse = await fetch('/api/characters/stats/summary');
+                const statsData = await statsResponse.json();
+                
+                if (statsData.success) {
+                    statsEl.innerHTML = `
+                        <p><strong>Total Characters:</strong> ${statsData.data.totalCharacters}</p>
+                        <p><strong>Total Categories:</strong> ${statsData.data.totalCategories}</p>
+                        <p><strong>Last Update:</strong> ${statsData.data.lastUpdate || 'Never'}</p>
+                    `;
+                } else {
+                    statsEl.innerHTML = '<p class="error">Failed to load stats</p>';
+                }
+                
+                // Test characters endpoint
+                console.log('Fetching characters...');
+                const charactersResponse = await fetch('/api/characters?page=1&limit=5');
+                const charactersData = await charactersResponse.json();
+                
+                if (charactersData.success && charactersData.data.characters) {
+                    charactersEl.innerHTML = charactersData.data.characters.map(char => `
+                        <div class="character">
+                            <h3>${char.name}</h3>
+                            <p><strong>Title:</strong> ${char.title}</p>
+                            <p><strong>Rarity:</strong> ${char.rarity}</p>
+                            <p><strong>Type:</strong> ${char.type}</p>
+                            <p><strong>Class:</strong> ${char.class}</p>
+                            <p><strong>Cost:</strong> ${char.cost}</p>
+                            ${char.image_url && char.image_url !== 'Error' ? 
+                                `<img src="${char.image_url}" alt="${char.name}" style="max-width: 100px;">` : 
+                                '<p>No image</p>'
+                            }
+                        </div>
+                    `).join('');
+                    
+                    statusEl.textContent = 'API working correctly!';
+                    statusEl.className = 'success';
+                } else {
+                    charactersEl.innerHTML = '<p class="error">Failed to load characters</p>';
+                    statusEl.textContent = 'API error in characters endpoint';
+                    statusEl.className = 'error';
+                }
+                
+            } catch (error) {
+                console.error('API test failed:', error);
+                statusEl.textContent = 'API connection failed: ' + error.message;
+                statusEl.className = 'error';
+            }
+        }
+        
+        // Run test when page loads
+        testAPI();
+    </script>
+</body>
+</html>
