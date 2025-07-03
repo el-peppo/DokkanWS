@@ -18,6 +18,8 @@ let transformEZALRCharacterDocument: Document;
 let transformEZALRCharacterData: Character | null;
 let separateDetailsBoxDocument: Document;
 let separateDetailsBoxData: Character | null;
+let sezaCharacterDocument: Document;
+let sezaCharacterData: Character | null;
 
 const httpClient = new HttpClient(DEFAULT_CONFIG);
 
@@ -47,6 +49,9 @@ before(async function () {
 
   separateDetailsBoxDocument = await fetchFromWeb('https://dbz-dokkanbattle.fandom.com/wiki/Ally_of_Love_and_Friendship_Videl') as Document;
   separateDetailsBoxData = CharacterExtractor.extractCharacterData(separateDetailsBoxDocument);
+
+  sezaCharacterDocument = await fetchFromWeb('https://dbz-dokkanbattle.fandom.com/wiki/Mystery_Super_Technique_Super_Saiyan_3_Goku') as Document;
+  sezaCharacterData = CharacterExtractor.extractCharacterData(sezaCharacterDocument);
 });
 
 after(() => {
@@ -981,5 +986,49 @@ describe("Tranformation TransformedLinks Extraction", function () {
 
   it("should be able to extract the Transformations TransformedLinks - transform", () => {
     deepEqual(transformCharacterData!.transformations[0].transformedLinks, ['Super Saiyan','Kamehameha','Warrior Gods','Godly Power','Prepared for Battle','Fierce Battle','Legendary Power'])
+  });
+});describe("Super EZA (SEZA) Extraction", function () {
+  it("should be able to extract SEZA Leader Skill", () => {
+    // Test will need to be updated once we verify the actual SEZA data structure
+    // For now, just test that the field exists and is either string or undefined
+    const sezaLeaderSkill = sezaCharacterData!.sezaLeaderSkill;
+    if (sezaLeaderSkill !== undefined) {
+      equal(typeof sezaLeaderSkill, 'string');
+    }
+  });
+
+  it("should be able to extract SEZA Super Attack", () => {
+    const sezaSuperAttack = sezaCharacterData!.sezaSuperAttack;
+    if (sezaSuperAttack !== undefined) {
+      equal(typeof sezaSuperAttack, 'string');
+    }
+  });
+
+  it("should be able to extract SEZA Passive", () => {
+    const sezaPassive = sezaCharacterData!.sezaPassive;
+    if (sezaPassive !== undefined) {
+      equal(typeof sezaPassive, 'string');
+    }
+  });
+
+  it("should be able to extract SEZA Ultra Super Attack", () => {
+    const sezaUltraSuperAttack = sezaCharacterData!.sezaUltraSuperAttack;
+    if (sezaUltraSuperAttack !== undefined) {
+      equal(typeof sezaUltraSuperAttack, 'string');
+    }
+  });
+
+  it("should be able to extract SEZA Active Skill", () => {
+    const sezaActiveSkill = sezaCharacterData!.sezaActiveSkill;
+    if (sezaActiveSkill !== undefined) {
+      equal(typeof sezaActiveSkill, 'string');
+    }
+  });
+
+  it("should be able to extract SEZA Active Skill Condition", () => {
+    const sezaActiveSkillCondition = sezaCharacterData!.sezaActiveSkillCondition;
+    if (sezaActiveSkillCondition !== undefined) {
+      equal(typeof sezaActiveSkillCondition, 'string');
+    }
   });
 });

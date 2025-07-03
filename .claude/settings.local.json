@@ -17,7 +17,9 @@
       "Bash(BATCH_SIZE=3 npm run run)",
       "Bash(timeout:*)",
       "Bash(find:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "WebFetch(domain:dragonball.fandom.com)",
+      "WebFetch(domain:dokkan.wiki)"
     ],
     "deny": []
   }
