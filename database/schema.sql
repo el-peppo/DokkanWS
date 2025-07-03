@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS characters (
     type ENUM('PHY', 'STR', 'AGL', 'TEQ', 'INT') NOT NULL,
     cost INT,
     image_url TEXT,
+    full_image_url TEXT,
     leader_skill TEXT,
     eza_leader_skill TEXT,
     seza_leader_skill TEXT,
@@ -110,6 +111,7 @@ CREATE TABLE IF NOT EXISTS character_transformations (
     transformed_active_skill TEXT,
     transformed_active_skill_condition TEXT,
     transformed_image_url TEXT,
+    transformed_full_image_url TEXT,
     FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
     UNIQUE KEY unique_character_transformation (character_id, transformation_order),
     INDEX idx_character_id (character_id)

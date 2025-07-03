@@ -98,13 +98,13 @@ export class JsonImporter {
         const sql = `
             INSERT INTO characters (
                 id, name, title, max_level, max_sa_level, rarity, class, type, cost,
-                image_url, leader_skill, eza_leader_skill, seza_leader_skill, super_attack, eza_super_attack, seza_super_attack,
+                image_url, full_image_url, leader_skill, eza_leader_skill, seza_leader_skill, super_attack, eza_super_attack, seza_super_attack,
                 ultra_super_attack, eza_ultra_super_attack, seza_ultra_super_attack, passive, eza_passive, seza_passive,
                 active_skill, active_skill_condition, eza_active_skill, eza_active_skill_condition, seza_active_skill, seza_active_skill_condition,
                 transformation_condition, ki_multiplier, base_hp, max_level_hp, free_dupe_hp,
                 rainbow_hp, base_attack, max_level_attack, free_dupe_attack, rainbow_attack,
                 base_defence, max_defence, free_dupe_defence, rainbow_defence
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const values = [
@@ -118,6 +118,7 @@ export class JsonImporter {
             character.type,
             character.cost,
             character.imageURL !== 'Error' ? character.imageURL : null,
+            character.fullImageURL !== 'Error' ? character.fullImageURL : null,
             character.leaderSkill !== 'Error' ? character.leaderSkill : null,
             character.ezaLeaderSkill || null,
             character.sezaLeaderSkill || null,
@@ -211,8 +212,8 @@ export class JsonImporter {
                     transformed_eza_super_attack, transformed_seza_super_attack, transformed_ultra_super_attack,
                     transformed_eza_ultra_super_attack, transformed_seza_ultra_super_attack, transformed_passive,
                     transformed_eza_passive, transformed_seza_passive, transformed_active_skill,
-                    transformed_active_skill_condition, transformed_image_url
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    transformed_active_skill_condition, transformed_image_url, transformed_full_image_url
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
 
             const values = [
@@ -233,7 +234,8 @@ export class JsonImporter {
                 transformation.transformedSEZAPassive || null,
                 transformation.transformedActiveSkill || null,
                 transformation.transformedActiveSkillCondition || null,
-                transformation.transformedImageURL !== 'Error' ? transformation.transformedImageURL : null
+                transformation.transformedImageURL !== 'Error' ? transformation.transformedImageURL : null,
+                transformation.transformedFullImageURL !== 'Error' ? transformation.transformedFullImageURL : null
             ];
 
             const result = await this.db.query(sql, values);
