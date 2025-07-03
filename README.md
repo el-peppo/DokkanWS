@@ -61,6 +61,13 @@ CONCURRENT_LIMIT=5
 REQUEST_TIMEOUT=15000
 USER_AGENT="Mozilla/5.0 (compatible; DokkanScraper/2.0)"
 LOG_LEVEL=info
+
+# Corelog Remote Logging (Optional)
+CORELOG_ENABLED=false
+CORELOG_REMOTE_HOST=localhost
+CORELOG_REMOTE_PORT=9020
+CORELOG_TIMEOUT_CONNECT=3000
+CORELOG_TIMEOUT_SEND=3000
 ```
 
 ## Project Structure
@@ -125,6 +132,92 @@ The scraper generates two output files:
 ]
 ```
 
+## Database Integration (Optional)
+
+Store scraped character data in MySQL for advanced querying and analysis.
+
+### Setup Database
+
+```bash
+# Option 1: Quick start with sample data (100 real LR characters)
+mysql -u root -p < database/sample_data.sql
+
+# Option 2: Create empty database
+npm run setup-db
+
+# Configure database connection
+cp .env.example .env
+# Edit .env with your MySQL credentials
+```
+
+### Import Data
+
+```bash
+# Import latest JSON file
+npm run import-db latest
+
+# Import all JSON files  
+npm run import-db all
+
+# Import specific file
+npm run import-db /path/to/data.json
+```
+
+### Features
+
+- **Sample Data**: 100 real LR characters included for immediate testing
+- **Normalized schema**: Separate tables for links, categories, transformations
+- **SEZA Support**: Super EZA fields in all tables
+- **Duplicate prevention**: Skips existing characters by ID
+- **Transaction safety**: Rollback on errors for data integrity
+- **Progress tracking**: Detailed import logs and statistics
+
+See `database/README.md` for complete setup instructions.
+
+## Corelog Integration (Optional)
+
+Send logs to a remote corelog server for centralized logging and analysis.
+
+### Setup Corelog Remote Logging
+
+```bash
+# Enable corelog in your .env file
+CORELOG_ENABLED=true
+CORELOG_REMOTE_HOST=your-corelog-server.com
+CORELOG_REMOTE_PORT=9020
+```
+
+### Features
+
+- **Remote-Only Logging**: When enabled, logs only to corelog server (winston on fallback)
+- **Structured Context**: Rich context data sent with each log entry
+- **Error Resilience**: Fallback to local logging if corelog server unavailable
+- **TCP Protocol**: Uses corelog's native TCP JSON protocol
+- **Async Operations**: Non-blocking log transmission
+
+### Log Format
+
+Logs are sent to corelog server in JSON format:
+
+```json
+{
+  "ts": "2024-01-15T14:30:45.123Z",
+  "app": "DokkanWS",
+  "level": "INFO",
+  "msg": "Category UR: 150 characters processed",
+  "ctx": {
+    "category": "UR",
+    "characters_processed": 150,
+    "total_processed": 450,
+    "progress_percent": 65.2,
+    "processing_rate": 12.5,
+    "eta_seconds": 45
+  }
+}
+```
+
+Compatible with corelog Python suite for centralized home automation logging.
+
 ## Architecture Details
 
 ### HTTP Client
@@ -138,6 +231,8 @@ The scraper generates two output files:
 - Text cleaning and normalization
 - Transformation handling for multi-form characters
 - EZA (Extreme Z-Awakening) data extraction
+- SEZA (Super Extreme Z-Awakening) data extraction
+- Support for all rarity tiers: N, R, SR, SSR, UR, LR
 
 ### Logging System
 - Console output with colors and formatting

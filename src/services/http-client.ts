@@ -53,7 +53,7 @@ export class HttpClient {
             const pLimit = this.pLimitModule.default || this.pLimitModule;
             this.concurrencyLimit = pLimit(this.config.concurrentLimit);
         } catch (error) {
-            logger.error('Failed to load p-limit module:', error);
+            await logger.error('Failed to load p-limit module:', {}, error as Error);
             // Fallback: no concurrency limiting
             this.concurrencyLimit = async (fn: Function) => fn();
         }
