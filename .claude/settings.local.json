@@ -37,7 +37,9 @@
       "Bash(ls:*)",
       "Bash(git commit:*)",
       "Bash(pkill:*)",
-      "Bash(npm outdated)"
+      "Bash(npm outdated)",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)"
     ],
     "deny": []
   }
