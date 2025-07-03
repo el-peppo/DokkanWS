@@ -12,7 +12,7 @@ export class JsonImporter {
 
     async importFromFile(filePath: string): Promise<void> {
         try {
-            logger.info(`Starting import from file: ${filePath}`);
+            await logger.info(`Starting import from file: ${filePath}`);
             
             await this.db.connect();
             
@@ -28,10 +28,10 @@ export class JsonImporter {
 
             await this.importCharacters(characters);
             
-            logger.info(`Successfully imported ${characters.length} characters`);
+            await logger.info(`Successfully imported ${characters.length} characters`);
             
         } catch (error) {
-            logger.error('Import failed:', error);
+            await logger.error('Import failed:', {}, error as Error);
             throw error;
         } finally {
             await this.db.disconnect();
@@ -50,7 +50,7 @@ export class JsonImporter {
                 // Check if character already exists
                 const exists = await this.characterExists(character.id);
                 if (exists) {
-                    logger.debug(`Character ${character.id} already exists, skipping`);
+                    await logger.debug(`Character ${character.id} already exists, skipping`);
                     skipped++;
                     await this.db.rollback();
                     continue;
@@ -73,17 +73,17 @@ export class JsonImporter {
                 imported++;
                 
                 if (imported % 100 === 0) {
-                    logger.info(`Imported ${imported} characters...`);
+                    await logger.info(`Imported ${imported} characters...`);
                 }
                 
             } catch (error) {
                 await this.db.rollback();
-                logger.error(`Failed to import character ${character.id}:`, error);
+                await logger.error(`Failed to import character ${character.id}:`, {}, error as Error);
                 errors++;
             }
         }
 
-        logger.info(`Import summary: ${imported} imported, ${skipped} skipped, ${errors} errors`);
+        await logger.info(`Import summary: ${imported} imported, ${skipped} skipped, ${errors} errors`);
     }
 
     private async characterExists(characterId: string): Promise<boolean> {

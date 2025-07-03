@@ -24,14 +24,14 @@ async function main() {
         
         if (command === 'latest') {
             const latestFile = getLatestDataFile();
-            logger.info(`Importing latest file: ${latestFile}`);
+            await logger.info(`Importing latest file: ${latestFile}`);
             await importer.importFromFile(latestFile);
         } else if (command === 'all') {
             const dataFiles = getAllDataFiles();
-            logger.info(`Found ${dataFiles.length} data files to import`);
+            await logger.info(`Found ${dataFiles.length} data files to import`);
             
             for (const file of dataFiles) {
-                logger.info(`Importing: ${file}`);
+                await logger.info(`Importing: ${file}`);
                 await importer.importFromFile(file);
             }
         } else {
@@ -40,9 +40,9 @@ async function main() {
             await importer.importFromFile(filePath);
         }
         
-        logger.info('Import completed successfully!');
+        await logger.info('Import completed successfully!');
     } catch (error) {
-        logger.error('Import failed:', error);
+        await logger.error('Import failed:', {}, error as Error);
         process.exit(1);
     }
 }
@@ -78,7 +78,7 @@ function getAllDataFiles(): string[] {
     return files.sort();
 }
 
-main().catch(error => {
-    logger.error('CLI failed:', error);
+main().catch(async (error) => {
+    await logger.error('CLI failed:', {}, error as Error);
     process.exit(1);
 });

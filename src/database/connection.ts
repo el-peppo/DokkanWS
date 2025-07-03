@@ -30,9 +30,9 @@ export class DatabaseConnection {
     async connect(): Promise<void> {
         try {
             this.connection = await mysql.createConnection(this.config);
-            logger.info('Connected to MySQL database');
+            await logger.info('Connected to MySQL database');
         } catch (error) {
-            logger.error('Failed to connect to database:', error);
+            await logger.error('Failed to connect to database:', {}, error as Error);
             throw error;
         }
     }
@@ -41,7 +41,7 @@ export class DatabaseConnection {
         if (this.connection) {
             await this.connection.end();
             this.connection = null;
-            logger.info('Disconnected from MySQL database');
+            await logger.info('Disconnected from MySQL database');
         }
     }
 
@@ -58,7 +58,7 @@ export class DatabaseConnection {
             const [results] = await connection.execute(sql, params);
             return results;
         } catch (error) {
-            logger.error('Database query failed:', { sql, error });
+            await logger.error('Database query failed:', { sql }, error as Error);
             throw error;
         }
     }

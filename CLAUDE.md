@@ -39,6 +39,18 @@ The project includes optional database integration to store scraped character da
 
 This is completely optional - the core scraper works independently and outputs JSON files as before.
 
+## Optional Corelog Integration
+
+The project includes optional integration with corelog Python suite for centralized remote logging. Located in `src/utils/corelog-client.ts` and enhanced logging system:
+
+- **Hybrid Logging**: Continues local winston logging while sending structured logs to remote corelog server
+- **TCP Protocol**: Uses corelog's native TCP JSON protocol for reliable transmission
+- **Rich Context**: Sends detailed scraping metrics and structured data for analysis
+- **Error Resilience**: Graceful fallback to local logging if corelog server unavailable
+- **Environment Configuration**: Simple enable/disable via environment variables
+
+Enable by setting `CORELOG_ENABLED=true` and configuring your corelog server endpoint. Compatible with existing corelog Python infrastructure for home automation logging.
+
 ## Architecture
 
 ### Core Components

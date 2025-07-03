@@ -3,7 +3,7 @@ export declare class CharacterExtractor {
     /**
      * Extract complete character data from character page DOM
      */
-    static extractCharacterData(document: Document): Character | null;
+    static extractCharacterData(document: Document): Promise<Character | null>;
     private static extractName;
     private static extractTitle;
     private static extractMaxLevel;

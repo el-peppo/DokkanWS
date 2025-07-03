@@ -59,6 +59,13 @@ CONCURRENT_LIMIT=5
 REQUEST_TIMEOUT=15000
 USER_AGENT="Mozilla/5.0 (compatible; DokkanScraper/2.0)"
 LOG_LEVEL=info
+
+# Corelog Remote Logging (Optional)
+CORELOG_ENABLED=false
+CORELOG_REMOTE_HOST=localhost
+CORELOG_REMOTE_PORT=9020
+CORELOG_TIMEOUT_CONNECT=3000
+CORELOG_TIMEOUT_SEND=3000
 ```
 
 ## Project Structure
@@ -159,6 +166,50 @@ npm run import-db /path/to/data.json
 - **Progress tracking**: Detailed import logs and statistics
 
 See `database/README.md` for complete setup instructions.
+
+## Corelog Integration (Optional)
+
+Send logs to a remote corelog server for centralized logging and analysis.
+
+### Setup Corelog Remote Logging
+
+```bash
+# Enable corelog in your .env file
+CORELOG_ENABLED=true
+CORELOG_REMOTE_HOST=your-corelog-server.com
+CORELOG_REMOTE_PORT=9020
+```
+
+### Features
+
+- **Hybrid Logging**: Continues local winston logging while sending to corelog
+- **Structured Context**: Rich context data sent with each log entry
+- **Error Resilience**: Fallback to local logging if corelog server unavailable
+- **TCP Protocol**: Uses corelog's native TCP JSON protocol
+- **Async Operations**: Non-blocking log transmission
+
+### Log Format
+
+Logs are sent to corelog server in JSON format:
+
+```json
+{
+  "ts": "2024-01-15T14:30:45.123Z",
+  "app": "DokkanWS",
+  "level": "INFO",
+  "msg": "Category UR: 150 characters processed",
+  "ctx": {
+    "category": "UR",
+    "characters_processed": 150,
+    "total_processed": 450,
+    "progress_percent": 65.2,
+    "processing_rate": 12.5,
+    "eta_seconds": 45
+  }
+}
+```
+
+Compatible with corelog Python suite for centralized home automation logging.
 
 ## Architecture Details
 

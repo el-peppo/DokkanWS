@@ -19,7 +19,12 @@
       "Bash(find:*)",
       "Bash(rg:*)",
       "Bash(BATCH_SIZE=3 node lib/index.js)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(gh pr view:*)",
+      "Bash(npx mocha:*)",
+      "Bash(NODE_ENV=development node test-verbose.js)",
+      "Bash(CORELOG_ENABLED=true NODE_ENV=development node debug-env.js)",
+      "Bash(CORELOG_ENABLED=true CORELOG_REMOTE_HOST=localhost CORELOG_REMOTE_PORT=9999 NODE_ENV=development node test-verbose.js)"
     ],
     "deny": []
   }

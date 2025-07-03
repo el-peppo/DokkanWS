@@ -7,14 +7,14 @@ export class CharacterExtractor {
     /**
      * Extract complete character data from character page DOM
      */
-    static extractCharacterData(document: Document): Character | null {
+    static async extractCharacterData(document: Document): Promise<Character | null> {
         try {
-            const transformations = this.extractTransformations(document);
+            const transformations = await this.extractTransformations(document);
             
             // Main character card selection
             const mainTable = DOMParser.querySelector(document, '.mw-parser-output table');
             if (!mainTable) {
-                logger.warn('Main character table not found');
+                await logger.warn('Main character table not found');
                 return null;
             }
 
@@ -63,7 +63,7 @@ export class CharacterExtractor {
 
             return character;
         } catch (error) {
-            logger.error('Error extracting character data:', error);
+            await logger.error('Error extracting character data:', {}, error as Error);
             return null;
         }
     }
@@ -461,7 +461,7 @@ export class CharacterExtractor {
         return 'Error';
     }
 
-    private static extractTransformations(document: Document): Transformation[] {
+    private static async extractTransformations(document: Document): Promise<Transformation[]> {
         const transformedArray: Transformation[] = [];
         const transformElements = DOMParser.querySelectorAll(document, '.mw-parser-output > div:nth-child(2) > div > ul > li');
         
@@ -471,7 +471,7 @@ export class CharacterExtractor {
 
         // Start from index 1 to skip untransformed state
         for (let index = 1; index < transformCount; index++) {
-            const transformation = this.extractSingleTransformation(document, index);
+            const transformation = await this.extractSingleTransformation(document, index);
             if (transformation) {
                 transformedArray.push(transformation);
             }
@@ -480,7 +480,7 @@ export class CharacterExtractor {
         return transformedArray;
     }
 
-    private static extractSingleTransformation(document: Document, index: number): Transformation | null {
+    private static async extractSingleTransformation(document: Document, index: number): Promise<Transformation | null> {
         try {
             const baseSelector = `.mw-parser-output > div:nth-child(2) > div:nth-child(${index + 2})`;
             
@@ -503,7 +503,7 @@ export class CharacterExtractor {
 
             return transformation;
         } catch (error) {
-            logger.error(`Error extracting transformation ${index}:`, error);
+            await logger.error(`Error extracting transformation ${index}:`, {}, error as Error);
             return null;
         }
     }

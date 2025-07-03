@@ -21,7 +21,7 @@ export class DokkanScraper {
      */
     async scrapeAllCharacters(): Promise<ScrapingResult> {
         const startTime = Date.now();
-        logger.info('Starting comprehensive Dokkan character scrape');
+        await logger.info('Starting comprehensive Dokkan character scrape');
 
         try {
             // Process all categories in parallel
@@ -36,7 +36,7 @@ export class DokkanScraper {
             const validCharacters = allCharacters.filter((char): char is Character => char !== null);
 
             const processingTime = Date.now() - startTime;
-            this.scrapingLogger.logCompletion();
+            await this.scrapingLogger.logCompletion();
 
             const result: ScrapingResult = {
                 characters: validCharacters,
@@ -48,11 +48,11 @@ export class DokkanScraper {
                 }
             };
 
-            logger.info(`Scraping completed successfully! Total characters: ${validCharacters.length}, Processing time: ${(processingTime / 1000).toFixed(2)}s`);
+            await logger.info(`Scraping completed successfully! Total characters: ${validCharacters.length}, Processing time: ${(processingTime / 1000).toFixed(2)}s`);
             return result;
 
         } catch (error) {
-            logger.error('Critical error during scraping:', error);
+            await logger.error('Critical error during scraping:', {}, error as Error);
             throw error;
         } finally {
             this.httpClient.destroy();
@@ -63,43 +63,43 @@ export class DokkanScraper {
      * Scrape characters from a specific category
      */
     async scrapeCategory(category: CategoryUrl): Promise<Character[]> {
-        logger.info(`Starting category: ${category}`);
+        await logger.info(`Starting category: ${category}`);
         
         try {
             const categoryUrl = `${DOKKAN_BASE_URL}/wiki/Category:${category}`;
             const categoryHtml = await this.httpClient.fetchWithRetry(categoryUrl);
             
             if (!categoryHtml) {
-                logger.error(`Failed to fetch category page: ${category}`);
+                await logger.error(`Failed to fetch category page: ${category}`);
                 return [];
             }
 
-            const categoryDocument = DOMParser.parseHTML(categoryHtml);
+            const categoryDocument = await DOMParser.parseHTML(categoryHtml);
             if (!categoryDocument) {
-                logger.error(`Failed to parse category page: ${category}`);
+                await logger.error(`Failed to parse category page: ${category}`);
                 return [];
             }
 
-            const characterLinks = DOMParser.extractCharacterLinks(categoryDocument, DOKKAN_BASE_URL);
-            logger.info(`Found ${characterLinks.length} character links in category ${category}`);
+            const characterLinks = await DOMParser.extractCharacterLinks(categoryDocument, DOKKAN_BASE_URL);
+            await logger.info(`Found ${characterLinks.length} character links in category ${category}`);
 
             if (characterLinks.length === 0) {
-                logger.warn(`No character links found in category: ${category}`);
+                await logger.warn(`No character links found in category: ${category}`);
                 return [];
             }
 
-            this.scrapingLogger.startScraping(characterLinks.length);
+            await this.scrapingLogger.startScraping(characterLinks.length);
 
             // Process characters in optimized batches
             const characters = await this.processCharactersBatch(characterLinks);
             
-            this.scrapingLogger.logProgress(category, characters.length);
-            logger.info(`Completed category ${category}: ${characters.length} characters processed`);
+            await this.scrapingLogger.logProgress(category, characters.length);
+            await logger.info(`Completed category ${category}: ${characters.length} characters processed`);
 
             return characters;
 
         } catch (error) {
-            logger.error(`Error processing category ${category}:`, error);
+            await logger.error(`Error processing category ${category}:`, {}, error as Error);
             return [];
         }
     }
@@ -117,11 +117,11 @@ export class DokkanScraper {
             const batchNumber = Math.floor(i / batchSize) + 1;
             const totalBatches = Math.ceil(characterLinks.length / batchSize);
 
-            logger.info(`Processing batch ${batchNumber}/${totalBatches} (${batch.length} characters)`);
+            await logger.info(`Processing batch ${batchNumber}/${totalBatches} (${batch.length} characters)`);
 
             try {
                 const batchResults = await this.httpClient.fetchBatch(batch);
-                const batchCharacters = this.extractCharactersFromBatch(batchResults);
+                const batchCharacters = await this.extractCharactersFromBatch(batchResults);
                 
                 allCharacters.push(...batchCharacters);
                 
@@ -131,7 +131,7 @@ export class DokkanScraper {
                 }
 
             } catch (error) {
-                logger.error(`Error processing batch ${batchNumber}:`, error);
+                await logger.error(`Error processing batch ${batchNumber}:`, {}, error as Error);
                 // Continue with next batch instead of failing completely
             }
         }
@@ -142,31 +142,31 @@ export class DokkanScraper {
     /**
      * Extract character data from batch fetch results
      */
-    private extractCharactersFromBatch(batchResults: Array<{ url: string; data: string | null }>): Character[] {
+    private async extractCharactersFromBatch(batchResults: Array<{ url: string; data: string | null }>): Promise<Character[]> {
         const characters: Character[] = [];
 
         for (const { url, data } of batchResults) {
             if (!data) {
-                logger.warn(`No data received for URL: ${url}`);
+                await logger.warn(`No data received for URL: ${url}`);
                 continue;
             }
 
             try {
-                const document = DOMParser.parseHTML(data);
+                const document = await DOMParser.parseHTML(data);
                 if (!document) {
-                    logger.warn(`Failed to parse HTML for URL: ${url}`);
+                    await logger.warn(`Failed to parse HTML for URL: ${url}`);
                     continue;
                 }
 
-                const character = CharacterExtractor.extractCharacterData(document);
+                const character = await CharacterExtractor.extractCharacterData(document);
                 if (character) {
                     characters.push(character);
                 } else {
-                    logger.warn(`Failed to extract character data from URL: ${url}`);
+                    await logger.warn(`Failed to extract character data from URL: ${url}`);
                 }
 
             } catch (error) {
-                logger.error(`Error extracting character from ${url}:`, error);
+                await logger.error(`Error extracting character from ${url}:`, {}, error as Error);
             }
         }
 
