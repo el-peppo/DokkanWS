@@ -56,17 +56,17 @@ Enable by setting `CORELOG_ENABLED=true` and configuring your corelog server end
 ### Core Components
 
 **scraper.ts** - Main scraping engine with two key functions:
-- `getDokkanData(rarity)`: Scrapes character lists by rarity (UR/LR) from category pages
+- `getDokkanData(rarity)`: Scrapes character lists by rarity (N/R/SR/SSR/UR/LR) from category pages
 - `extractCharacterData(document)`: Extracts detailed character data from individual character pages using complex DOM selectors
 
 **character.ts** - Type definitions:
 - `Character` interface: 40+ fields including stats, skills, transformations
 - `Transformation` interface: For characters that can transform mid-battle
-- Enums for `Classes` (Super/Extreme), `Types` (PHY/STR/AGL/TEQ/INT), `Rarities` (UR/LR)
+- Enums for `Classes` (Super/Extreme), `Types` (PHY/STR/AGL/TEQ/INT), `Rarities` (N/R/SR/SSR/UR/LR)
 
 **index.ts** - Orchestration layer that:
 - Runs scraper across multiple UR batches (wiki pagination requires multiple requests)
-- Combines LR and UR data sets
+- Combines all rarity data sets (N, R, SR, SSR, UR, LR)
 - Saves consolidated JSON output with date stamps
 
 ### Data Extraction Strategy

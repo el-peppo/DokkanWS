@@ -224,6 +224,8 @@ Compatible with corelog Python suite for centralized home automation logging.
 - Text cleaning and normalization
 - Transformation handling for multi-form characters
 - EZA (Extreme Z-Awakening) data extraction
+- SEZA (Super Extreme Z-Awakening) data extraction
+- Support for all rarity tiers: N, R, SR, SSR, UR, LR
 
 ### Logging System
 - Console output with colors and formatting
