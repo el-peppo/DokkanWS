@@ -123,6 +123,43 @@ The scraper generates two output files:
 ]
 ```
 
+## Database Integration (Optional)
+
+Store scraped character data in MySQL for advanced querying and analysis.
+
+### Setup Database
+
+```bash
+# Install MySQL and create database
+npm run setup-db
+
+# Configure database connection
+cp .env.example .env
+# Edit .env with your MySQL credentials
+```
+
+### Import Data
+
+```bash
+# Import latest JSON file
+npm run import-db latest
+
+# Import all JSON files  
+npm run import-db all
+
+# Import specific file
+npm run import-db /path/to/data.json
+```
+
+### Features
+
+- **Normalized schema**: Separate tables for links, categories, transformations
+- **Duplicate prevention**: Skips existing characters by ID
+- **Transaction safety**: Rollback on errors for data integrity
+- **Progress tracking**: Detailed import logs and statistics
+
+See `database/README.md` for complete setup instructions.
+
 ## Architecture Details
 
 ### HTTP Client

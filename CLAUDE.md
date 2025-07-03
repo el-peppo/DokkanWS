@@ -20,9 +20,24 @@ npm run build
 
 # Watch mode for development
 npm run watch
+
+# Database commands (optional MySQL integration)
+npm run setup-db        # Create database schema
+npm run import-db latest # Import latest JSON to MySQL
 ```
 
 Output files are saved to `./data/{YYYYMMDD}DokkanCharacterData.json`
+
+## Optional MySQL Integration
+
+The project includes optional database integration to store scraped character data in MySQL for advanced querying and analysis. Located in `src/database/` and `database/`:
+
+- **Database Schema**: Normalized MySQL schema with separate tables for characters, links, categories, transformations
+- **JSON Importer**: Converts existing JSON output files to MySQL database entries  
+- **Duplicate Prevention**: Skips characters that already exist in database (by ID)
+- **CLI Interface**: Simple commands to import data from JSON files
+
+This is completely optional - the core scraper works independently and outputs JSON files as before.
 
 ## Architecture
 

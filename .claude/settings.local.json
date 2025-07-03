@@ -17,7 +17,9 @@
       "Bash(BATCH_SIZE=3 npm run run)",
       "Bash(timeout:*)",
       "Bash(find:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(BATCH_SIZE=3 node lib/index.js)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }
