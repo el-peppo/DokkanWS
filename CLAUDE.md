@@ -53,6 +53,10 @@ The project includes optional integration with corelog Python suite for centrali
 
 Enable by setting `CORELOG_ENABLED=true` and configuring your corelog server endpoint. Compatible with existing corelog Python infrastructure for home automation logging.
 
+Related repositories:
+- **corelog**: Full-featured Python logging server and client suite (https://github.com/elpeppo/corelog)
+- **corelog-min**: Minimal standalone Python logging server for lightweight deployments (https://github.com/elpeppo/corelog-min)
+
 ## Architecture
 
 ### Core Components
