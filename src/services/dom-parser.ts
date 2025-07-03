@@ -100,7 +100,7 @@ export class DOMParser {
             
             // For large categories like UR, generate alphabet-based pagination
             if (characterCount >= 50 && categoryName === 'UR') {
-                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('');
+                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
                 for (const letter of alphabet) {
                     const alphabetUrl = `/wiki/Category:${categoryName}?from=${letter}`;
                     if (!paginationUrls.some(url => url.includes(`from=${letter}`))) {
