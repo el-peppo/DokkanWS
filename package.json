@@ -1,6 +1,6 @@
 {
   "name": "dokkan-web-scraper",
-  "version": "2.0.0",
+  "version": "2.5.0",
   "description": "Advanced TypeScript web scraper for Dragon Ball Z Dokkan Battle character data",
   "type": "module",
   "main": "lib/index.js",

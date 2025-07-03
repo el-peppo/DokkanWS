@@ -1,5 +1,5 @@
 import { Character, ScrapingConfig, ScrapingResult } from '../types/character.js';
-import { DOKKAN_BASE_URL, CATEGORY_URLS, CategoryUrl } from '../config/scraper.config.js';
+import { DOKKAN_BASE_URL, BASE_CATEGORY_URLS, CategoryUrl } from '../config/scraper.config.js';
 import { HttpClient } from './http-client.js';
 import { DOMParser } from './dom-parser.js';
 import { CharacterExtractor } from './character-extractor.js';
@@ -34,9 +34,9 @@ export class DokkanScraper {
         await this.initialize();
 
         try {
-            // Process all categories in parallel
-            const categoryPromises = CATEGORY_URLS.map(category => 
-                this.scrapeCategory(category)
+            // Process all categories with dynamic pagination
+            const categoryPromises = BASE_CATEGORY_URLS.map(category => 
+                this.scrapeCategoryWithPagination(category)
             );
 
             const categoryResults = await Promise.all(categoryPromises);
@@ -53,7 +53,7 @@ export class DokkanScraper {
                 stats: {
                     totalCharacters: validCharacters.length,
                     processingTime,
-                    categoriesProcessed: [...CATEGORY_URLS],
+                    categoriesProcessed: [...BASE_CATEGORY_URLS],
                     errors: this.httpClient.getErrors()
                 }
             };
@@ -113,6 +113,83 @@ export class DokkanScraper {
             await logger.error(`Error processing category ${category}:`, {}, error as Error);
             return [];
         }
+    }
+
+    /**
+     * Scrape characters from a category with dynamic pagination support
+     */
+    async scrapeCategoryWithPagination(category: CategoryUrl): Promise<Character[]> {
+        await logger.info(`Starting category: ${category}`);
+        
+        const allCharacters: Character[] = [];
+        const processedUrls = new Set<string>();
+        const urlsToProcess = [`${DOKKAN_BASE_URL}/wiki/Category:${category}`];
+        
+        while (urlsToProcess.length > 0) {
+            const currentUrl = urlsToProcess.shift()!;
+            
+            // Skip if already processed
+            if (processedUrls.has(currentUrl)) {
+                continue;
+            }
+            
+            processedUrls.add(currentUrl);
+            
+            try {
+                const categoryHtml = await this.httpClient.fetchWithRetry(currentUrl);
+                
+                if (!categoryHtml) {
+                    await logger.error(`Failed to fetch category page: ${currentUrl}`);
+                    continue;
+                }
+
+                const categoryDocument = await DOMParser.parseHTML(categoryHtml);
+                if (!categoryDocument) {
+                    await logger.error(`Failed to parse category page: ${currentUrl}`);
+                    continue;
+                }
+
+                // Extract character links from current page
+                const characterLinks = await DOMParser.extractCharacterLinks(categoryDocument, DOKKAN_BASE_URL);
+                await logger.info(`Found ${characterLinks.length} character links in category ${category} (page: ${currentUrl})`);
+
+                if (characterLinks.length > 0) {
+                    // Initialize progress tracking for first page
+                    if (allCharacters.length === 0) {
+                        await this.scrapingLogger.startScraping(characterLinks.length);
+                    }
+
+                    // Process characters from this page
+                    const pageCharacters = await this.processCharactersBatch(characterLinks);
+                    allCharacters.push(...pageCharacters);
+                    
+                    await this.scrapingLogger.logProgress(category, pageCharacters.length);
+                }
+
+                // Look for pagination URLs to continue processing
+                const paginationUrls = await DOMParser.extractPaginationUrls(categoryDocument, currentUrl);
+                
+                // Add new pagination URLs to the queue
+                for (const paginationUrl of paginationUrls) {
+                    if (!processedUrls.has(paginationUrl) && !urlsToProcess.includes(paginationUrl)) {
+                        urlsToProcess.push(paginationUrl);
+                        await logger.info(`Found pagination URL: ${paginationUrl}`);
+                    }
+                }
+
+                // If no characters found and no pagination, we're done
+                if (characterLinks.length === 0 && paginationUrls.length === 0) {
+                    break;
+                }
+
+            } catch (error) {
+                await logger.error(`Error processing category page ${currentUrl}:`, {}, error as Error);
+                continue;
+            }
+        }
+        
+        await logger.info(`Completed category ${category}: ${allCharacters.length} characters processed from ${processedUrls.size} pages`);
+        return allCharacters;
     }
 
     /**

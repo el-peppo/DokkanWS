@@ -8,6 +8,10 @@ export declare class DOMParser {
      */
     static extractCharacterLinks(document: Document, baseUrl: string): Promise<string[]>;
     /**
+     * Detect pagination on category pages and return next page URLs
+     */
+    static extractPaginationUrls(document: Document, currentUrl: string): Promise<string[]>;
+    /**
      * Safely query a single element
      */
     static querySelector(element: Document | Element | null, selector: string): Element | null;

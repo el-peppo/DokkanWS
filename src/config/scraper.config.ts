@@ -14,16 +14,13 @@ export const DEFAULT_CONFIG: ScrapingConfig = {
 
 export const DOKKAN_BASE_URL = 'https://dbz-dokkanbattle.fandom.com';
 
-export const CATEGORY_URLS = [
+export const BASE_CATEGORY_URLS = [
     'N',
     'R',
     'SR',
     'SSR',
     'UR',
-    'UR?from=Evil+Pride+Frieza+(Final+Form)+(Angel)',
-    'UR?from=Next-Level+Strike+Super+Saiyan+God+SS+Goku',
-    'UR?from=Training+and+Refreshment+Goku',
     'LR'
 ] as const;
 
-export type CategoryUrl = typeof CATEGORY_URLS[number];
+export type CategoryUrl = typeof BASE_CATEGORY_URLS[number];

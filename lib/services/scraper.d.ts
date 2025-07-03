@@ -18,6 +18,10 @@ export declare class DokkanScraper {
      */
     scrapeCategory(category: CategoryUrl): Promise<Character[]>;
     /**
+     * Scrape characters from a category with dynamic pagination support
+     */
+    scrapeCategoryWithPagination(category: CategoryUrl): Promise<Character[]>;
+    /**
      * Process character links in optimized batches with controlled concurrency
      */
     private processCharactersBatch;
