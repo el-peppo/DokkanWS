@@ -9,6 +9,7 @@ export interface Character {
     cost: number;
     id: string;
     imageURL: string;
+    fullImageURL: string;
     leaderSkill: string;
     ezaLeaderSkill?: string;
     sezaLeaderSkill?: string;
@@ -87,6 +88,7 @@ export interface Transformation {
     transformedActiveSkillCondition?: string;
     transformedLinks: string[];
     transformedImageURL: string;
+    transformedFullImageURL: string;
 }
 
 export interface ScrapingConfig {

@@ -29,6 +29,7 @@ export class CharacterExtractor {
                 cost: this.extractCost(document),
                 id: this.extractId(document),
                 imageURL: this.extractImageURL(document),
+                fullImageURL: this.extractFullImageURL(document),
                 leaderSkill: this.extractLeaderSkill(document),
                 ezaLeaderSkill: this.extractEZALeaderSkill(document),
                 sezaLeaderSkill: this.extractSEZALeaderSkill(document),
@@ -153,6 +154,14 @@ export class CharacterExtractor {
             }
         }
         return 'Error';
+    }
+
+    private static extractFullImageURL(document: Document): string {
+        const thumbnailURL = this.extractImageURL(document);
+        if (thumbnailURL === 'Error') return 'Error';
+        
+        // Convert thumbnail URL to full-size URL by removing 'thumb_'
+        return thumbnailURL.replace('thumb_apng.png', 'apng.png');
     }
 
     private static extractSkillByImage(document: Document, imageName: string): string {
@@ -507,7 +516,8 @@ export class CharacterExtractor {
                 transformedActiveSkill: this.extractTransformationActiveSkill(document, baseSelector),
                 transformedActiveSkillCondition: this.extractTransformationActiveSkillCondition(document, baseSelector),
                 transformedLinks: this.extractTransformationLinks(document, baseSelector),
-                transformedImageURL: this.extractTransformationImageURL(document, baseSelector)
+                transformedImageURL: this.extractTransformationImageURL(document, baseSelector),
+                transformedFullImageURL: this.extractTransformationFullImageURL(document, baseSelector)
             };
 
             return transformation;
@@ -669,6 +679,14 @@ export class CharacterExtractor {
             }
         }
         return 'Error';
+    }
+
+    private static extractTransformationFullImageURL(document: Document, baseSelector: string): string {
+        const thumbnailURL = this.extractTransformationImageURL(document, baseSelector);
+        if (thumbnailURL === 'Error') return 'Error';
+        
+        // Convert thumbnail URL to full-size URL by removing 'thumb_'
+        return thumbnailURL.replace('thumb_apng.png', 'apng.png');
     }
 
     // SEZA (Super EZA) Extraction Methods
