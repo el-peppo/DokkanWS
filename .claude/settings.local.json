@@ -40,7 +40,9 @@
       "Bash(npm outdated)",
       "Bash(git checkout:*)",
       "Bash(git merge:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(jq:*)"
     ],
     "deny": []
   }

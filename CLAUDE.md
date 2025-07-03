@@ -4,13 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-DokkanWebScraper is a TypeScript web scraper that extracts character data from the Dragon Ball Z Dokkan Battle Fandom wiki and builds a comprehensive database. The scraper handles complex character pages including base forms, transformations, and EZA (Extreme Z-Awakening) variations.
+DokkanWebScraper is a TypeScript web scraper that extracts character data from the Dragon Ball Z Dokkan Battle Fandom wiki and builds a comprehensive database. The scraper handles complex character pages including base forms, transformations, and EZA (Extreme Z-Awakening) variations. Version 2.5 includes a Web UI, API server, enhanced MySQL integration, and full dependency updates.
 
 ## Essential Commands
 
 ```bash
 # Run the scraper to collect all character data
 npm run run
+
+# Run with Web UI and API server (port 3000)
+npm run api
 
 # Run all tests (193 test cases covering extraction accuracy)
 npm test
@@ -24,9 +27,14 @@ npm run watch
 # Database commands (optional MySQL integration)
 npm run setup-db        # Create database schema
 npm run import-db latest # Import latest JSON to MySQL
+npm run import-db all    # Import all JSON files
+
+# Linting
+npm run lint            # Check code style
+npm run lint:fix        # Auto-fix linting issues
 ```
 
-**Note**: Uses modern Node.js ESM loader syntax (Node.js 18+). The deprecated `--experimental-loader` has been replaced with `--import` syntax.
+**Note**: Uses modern Node.js ESM loader syntax (Node.js 18+). The deprecated `--experimental-loader` has been replaced with `--import` syntax. Dependencies updated to latest versions including jsdom v26, mocha v11, and eslint v9.
 
 Output files are saved to `./data/{YYYYMMDD}DokkanCharacterData.json`
 
@@ -35,9 +43,11 @@ Output files are saved to `./data/{YYYYMMDD}DokkanCharacterData.json`
 The project includes optional database integration to store scraped character data in MySQL for advanced querying and analysis. Located in `src/database/` and `database/`:
 
 - **Database Schema**: Normalized MySQL schema with separate tables for characters, links, categories, transformations
+- **Full-size Images**: Both thumbnail and full-size character image URLs stored
 - **JSON Importer**: Converts existing JSON output files to MySQL database entries  
 - **Duplicate Prevention**: Skips characters that already exist in database (by ID)
 - **CLI Interface**: Simple commands to import data from JSON files
+- **SEZA Support**: Super Extreme Z-Awakening fields in all tables
 
 This is completely optional - the core scraper works independently and outputs JSON files as before.
 
@@ -56,6 +66,22 @@ Enable by setting `CORELOG_ENABLED=true` and configuring your corelog server end
 Related repositories:
 - **corelog**: Full-featured Python logging server and client suite (https://github.com/elpeppo/corelog)
 - **corelog-min**: Minimal standalone Python logging server for lightweight deployments (https://github.com/elpeppo/corelog-min)
+
+## Web UI and API Server
+
+The project includes a modern web interface for real-time monitoring:
+
+**api/index.ts** - Express.js server with Socket.IO:
+- RESTful API endpoints for scraping control and data access
+- WebSocket support for real-time progress updates
+- Helmet security, CORS support, compression
+- Static file serving for the web UI
+
+**public/** - Web UI assets:
+- `index.html`: Modern responsive dashboard
+- `app.js`: Client-side JavaScript with Socket.IO integration
+- Real-time progress tracking and character browsing
+- Mobile-friendly responsive design
 
 ## Architecture
 

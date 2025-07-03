@@ -1,6 +1,15 @@
-# DokkanWebScraper 2.0
+# DokkanWebScraper 2.5
 
-Advanced TypeScript web scraper for Dragon Ball Z Dokkan Battle character data extraction from the Fandom wiki.
+Advanced TypeScript web scraper for Dragon Ball Z Dokkan Battle character data extraction from the Fandom wiki, now with Web UI, MySQL integration, and remote logging capabilities.
+
+## What's New in v2.5
+
+### v2.5 Features
+- **Web UI**: Real-time monitoring dashboard with Socket.IO
+- **API Server**: RESTful API for scraping control and data access
+- **Enhanced MySQL**: Full-size image URLs and improved schema
+- **Dependency Updates**: All packages updated to latest versions
+- **Bug Fixes**: Fixed async_hooks deprecation warnings
 
 ## What's New in v2.0
 
@@ -44,6 +53,9 @@ npm run build
 ```bash
 # Run the modernized scraper
 npm run run
+
+# Run with Web UI and API server
+npm run api
 
 # For development with file watching
 npm run watch
@@ -132,6 +144,37 @@ The scraper generates two output files:
 ]
 ```
 
+## Web UI and API Server
+
+The scraper includes a modern web interface for real-time monitoring and control.
+
+### Start the API Server
+
+```bash
+# Start API server on port 3000
+npm run api
+
+# Or with custom port
+PORT=8080 npm run api
+```
+
+### Features
+
+- **Real-time Progress**: Live updates via WebSocket connection
+- **Character Browser**: Search and filter scraped characters
+- **Scraping Control**: Start/stop scraping from the web interface
+- **Statistics Dashboard**: Success rates, timing metrics, error tracking
+- **Responsive Design**: Mobile-friendly interface
+
+### API Endpoints
+
+- `GET /api/status` - Current scraping status
+- `POST /api/scrape/start` - Start scraping process
+- `POST /api/scrape/stop` - Stop scraping process
+- `GET /api/characters` - List scraped characters (with pagination)
+- `GET /api/characters/:id` - Get specific character details
+- `GET /api/stats` - Scraping statistics
+
 ## Database Integration (Optional)
 
 Store scraped character data in MySQL for advanced querying and analysis.
@@ -168,6 +211,7 @@ npm run import-db /path/to/data.json
 - **Sample Data**: 100 real LR characters included for immediate testing
 - **Normalized schema**: Separate tables for links, categories, transformations
 - **SEZA Support**: Super EZA fields in all tables
+- **Full-size Images**: Both thumbnail and full-size character images stored
 - **Duplicate prevention**: Skips existing characters by ID
 - **Transaction safety**: Rollback on errors for data integrity
 - **Progress tracking**: Detailed import logs and statistics
