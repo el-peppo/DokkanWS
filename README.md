@@ -36,6 +36,8 @@ cp .env.example .env
 npm run build
 ```
 
+**Note**: This project uses modern Node.js ESM loader syntax (requires Node.js 18+). The deprecated `--experimental-loader` has been replaced with the new `--import` syntax for better compatibility.
+
 ## Usage
 
 ### Quick Start
