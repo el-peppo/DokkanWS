@@ -6,6 +6,10 @@ export declare class DokkanScraper {
     private readonly scrapingLogger;
     constructor(config: ScrapingConfig);
     /**
+     * Initialize the scraper (must be called before scraping)
+     */
+    initialize(): Promise<void>;
+    /**
      * Scrape all Dokkan character data
      */
     scrapeAllCharacters(): Promise<ScrapingResult>;

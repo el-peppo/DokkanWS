@@ -19,7 +19,11 @@
       "Bash(find:*)",
       "Bash(rg:*)",
       "WebFetch(domain:dragonball.fandom.com)",
-      "WebFetch(domain:dokkan.wiki)"
+      "WebFetch(domain:dokkan.wiki)",
+      "Bash(npm test:*)",
+      "Bash(BATCH_SIZE=3 timeout 30 npm run run)",
+      "Bash(npm ls:*)",
+      "Bash(BATCH_SIZE=2 timeout 20 node lib/index.js)"
     ],
     "deny": []
   }

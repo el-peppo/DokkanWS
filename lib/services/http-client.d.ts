@@ -1,10 +1,15 @@
 import { ScrapingConfig, ScrapingError } from '../types/character.js';
 export declare class HttpClient {
     private readonly axios;
-    private readonly concurrencyLimit;
+    private concurrencyLimit;
     private readonly config;
     private readonly errors;
+    private pLimitModule;
     constructor(config: ScrapingConfig);
+    /**
+     * Initialize the http client (must be called before using)
+     */
+    initialize(): Promise<void>;
     /**
      * Fetch URL with retry logic and concurrency control
      */

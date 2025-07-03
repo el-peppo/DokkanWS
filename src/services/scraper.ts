@@ -17,11 +17,21 @@ export class DokkanScraper {
     }
 
     /**
+     * Initialize the scraper (must be called before scraping)
+     */
+    async initialize(): Promise<void> {
+        await this.httpClient.initialize();
+    }
+
+    /**
      * Scrape all Dokkan character data
      */
     async scrapeAllCharacters(): Promise<ScrapingResult> {
         const startTime = Date.now();
         logger.info('Starting comprehensive Dokkan character scrape');
+
+        // Ensure http client is initialized
+        await this.initialize();
 
         try {
             // Process all categories in parallel
