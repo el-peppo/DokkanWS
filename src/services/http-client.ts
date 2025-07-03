@@ -1,19 +1,20 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
-import pLimit from 'p-limit';
 import { ScrapingConfig, ScrapingError } from '../types/character.js';
 import { logger } from '../utils/logger.js';
 
+type PLimitFunction = (fn: Function) => Promise<any>;
+
 export class HttpClient {
     private readonly axios: AxiosInstance;
-    private readonly concurrencyLimit: ReturnType<typeof pLimit>;
+    private concurrencyLimit!: PLimitFunction;
     private readonly config: ScrapingConfig;
     private readonly errors: ScrapingError[] = [];
+    private pLimitModule: any;
 
     constructor(config: ScrapingConfig) {
         this.config = config;
-        this.concurrencyLimit = pLimit(config.concurrentLimit);
 
         // Create connection pooling agents
         const httpAgent = new HttpAgent({ 
@@ -43,9 +44,28 @@ export class HttpClient {
     }
 
     /**
+     * Initialize the http client (must be called before using)
+     */
+    async initialize(): Promise<void> {
+        try {
+            // Dynamic import of p-limit to handle ESM compatibility
+            this.pLimitModule = await import('p-limit');
+            const pLimit = this.pLimitModule.default || this.pLimitModule;
+            this.concurrencyLimit = pLimit(this.config.concurrentLimit);
+        } catch (error) {
+            logger.error('Failed to load p-limit module:', error);
+            // Fallback: no concurrency limiting
+            this.concurrencyLimit = async (fn: Function) => fn();
+        }
+    }
+
+    /**
      * Fetch URL with retry logic and concurrency control
      */
     async fetchWithRetry(url: string): Promise<string | null> {
+        if (!this.concurrencyLimit) {
+            await this.initialize();
+        }
         return this.concurrencyLimit(async () => {
             for (let attempt = 1; attempt <= this.config.maxRetries; attempt++) {
                 try {

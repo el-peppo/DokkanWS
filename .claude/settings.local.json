@@ -18,18 +18,12 @@
       "Bash(timeout:*)",
       "Bash(find:*)",
       "Bash(rg:*)",
-      "Bash(BATCH_SIZE=3 node lib/index.js)",
-      "Bash(git checkout:*)",
-      "Bash(git merge:*)",
       "WebFetch(domain:dragonball.fandom.com)",
       "WebFetch(domain:dokkan.wiki)",
-      "Bash(sudo apt:*)",
-      "Bash(sudo apt install:*)",
-      "Bash(sudo systemctl start:*)",
-      "Bash(sudo systemctl:*)",
-      "Bash(sudo mysql:*)",
-      "Bash(mv:*)",
-      "Bash(pkill:*)"
+      "Bash(npm test:*)",
+      "Bash(BATCH_SIZE=3 timeout 30 npm run run)",
+      "Bash(npm ls:*)",
+      "Bash(BATCH_SIZE=2 timeout 20 node lib/index.js)"
     ],
     "deny": []
   }
