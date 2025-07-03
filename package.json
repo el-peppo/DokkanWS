@@ -14,9 +14,9 @@
     "prestart": "npm run build",
     "test": "mocha --require ts-node/register 'src/**/*.spec.ts'",
     "test:watch": "npm run test -- --watch",
-    "run": "node --loader ts-node/esm src/index.ts",
+    "run": "node --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' src/index.ts",
     "run:optimized": "npx ts-node src/index-optimized.ts",
-    "import-db": "node --loader ts-node/esm src/database/import-cli.ts",
+    "import-db": "node --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' src/database/import-cli.ts",
     "setup-db": "mysql -u root -p < database/schema.sql",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
@@ -44,7 +44,7 @@
     "eslint": "^8.57.0",
     "mocha": "^10.4.0",
     "rimraf": "^5.0.0",
-    "ts-node": "^10.9.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.0"
   },
   "engines": {
