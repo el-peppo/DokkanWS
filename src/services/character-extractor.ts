@@ -48,6 +48,8 @@ export class CharacterExtractor {
                 ezaActiveSkillCondition: this.extractEZAActiveSkillCondition(document),
                 sezaActiveSkill: this.extractSEZAActiveSkill(document),
                 sezaActiveSkillCondition: this.extractSEZAActiveSkillCondition(document),
+                standbySkill: this.extractStandbySkill(document),
+                standbySkillCondition: this.extractStandbySkillCondition(document),
                 transformationCondition: this.extractTransformationCondition(document),
                 links: this.extractLinks(document),
                 categories: this.extractCategories(document),
@@ -690,6 +692,49 @@ export class CharacterExtractor {
         
         // Convert thumbnail URL to full-size URL by removing 'thumb_'
         return thumbnailURL.replace('thumb_apng.png', 'apng.png');
+    }
+
+    // Standby Skill Extraction Methods
+    private static extractStandbySkill(document: Document): string | undefined {
+        // Look for standby skill indicators
+        const standbyElement = DOMParser.querySelector(document, '[data-image-name="Standby skill.png"]');
+        if (standbyElement) {
+            const row = DOMParser.findClosest(standbyElement, 'tr');
+            const nextRow = DOMParser.getNextSibling(row);
+            const text = DOMParser.extractText(nextRow, '');
+            if (text && text !== 'Error') return text;
+        }
+
+        // Alternative: look for text containing "standby" keywords
+        const allText = DOMParser.extractText(document, '');
+        if (allText.toLowerCase().includes('switch to standby') || 
+            allText.toLowerCase().includes('standby for') ||
+            allText.toLowerCase().includes('standby skill')) {
+            // Try to find the specific standby text in tables
+            const tables = DOMParser.querySelectorAll(document, 'table');
+            for (const table of tables) {
+                const tableText = DOMParser.extractText(table as Element, '');
+                if (tableText.toLowerCase().includes('switch to standby')) {
+                    return tableText.trim();
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    private static extractStandbySkillCondition(document: Document): string | undefined {
+        // Look for standby skill conditions - often includes activation conditions
+        const standbySkill = this.extractStandbySkill(document);
+        if (standbySkill) {
+            // Extract condition part (usually after semicolon or in parentheses)
+            const match = standbySkill.match(/\((.*?only.*?)\)/i) || 
+                         standbySkill.match(/starting from.*?battle/i);
+            if (match) {
+                return match[0].replace(/[()]/g, '');
+            }
+        }
+        return undefined;
     }
 
     // SEZA (Super EZA) Extraction Methods

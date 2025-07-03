@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS characters (
     eza_active_skill_condition TEXT,
     seza_active_skill TEXT,
     seza_active_skill_condition TEXT,
+    standby_skill TEXT,
+    standby_skill_condition TEXT,
     transformation_condition TEXT,
     ki_multiplier TEXT,
     ki_12_multiplier TEXT,
