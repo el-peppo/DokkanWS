@@ -10,7 +10,12 @@ export class DatabaseService {
     }
 
     async connect(): Promise<void> {
-        await this.db.connect();
+        try {
+            await this.db.connect();
+        } catch (error) {
+            await logger.warn('Database connection failed, continuing without database features');
+            // Don't throw - allow API to work without database
+        }
     }
 
     async disconnect(): Promise<void> {
@@ -19,6 +24,10 @@ export class DatabaseService {
 
     async searchCharacters(query: CharacterSearchQuery): Promise<CharacterSearchResult> {
         try {
+            // Check if database is connected
+            if (!this.db.isConnected()) {
+                throw new Error('Database not connected');
+            }
             const page = query.page || 1;
             const limit = Math.min(query.limit || 20, 100); // Max 100 per page
             const offset = (page - 1) * limit;
@@ -122,8 +131,26 @@ export class DatabaseService {
             };
 
         } catch (error) {
-            await logger.error('Failed to search characters:', {}, error as Error);
-            throw error;
+            await logger.warn('Database search failed, returning empty results');
+            // Return empty results if database is unavailable
+            return {
+                characters: [],
+                pagination: {
+                    page: 1,
+                    limit: 20,
+                    total: 0,
+                    totalPages: 0,
+                    hasNext: false,
+                    hasPrev: false
+                },
+                filters: {
+                    rarities: [],
+                    types: [],
+                    classes: [],
+                    categories: [],
+                    links: []
+                }
+            };
         }
     }
 
@@ -146,8 +173,8 @@ export class DatabaseService {
 
             return character;
         } catch (error) {
-            await logger.error(`Failed to get character ${id}:`, {}, error as Error);
-            throw error;
+            await logger.warn(`Database get character failed for ${id}`);
+            return null;
         }
     }
 

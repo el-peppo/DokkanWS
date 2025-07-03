@@ -12,5 +12,6 @@ export declare class APIServer {
     start(): Promise<void>;
     stop(): Promise<void>;
     getApp(): express.Application;
+    private initializeDatabase;
 }
 //# sourceMappingURL=server.d.ts.map

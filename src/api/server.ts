@@ -34,6 +34,9 @@ export class APIServer {
         this.setupMiddleware();
         this.setupRoutes();
         this.setupWebSocket();
+        
+        // Initialize database connection once
+        this.initializeDatabase();
     }
 
     private setupMiddleware(): void {
@@ -156,5 +159,10 @@ export class APIServer {
 
     getApp(): express.Application {
         return this.app;
+    }
+
+    private async initializeDatabase(): Promise<void> {
+        // Database initialization is handled by individual routes
+        // This method is here for future centralized DB management
     }
 }

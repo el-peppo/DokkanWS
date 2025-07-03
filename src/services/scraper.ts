@@ -198,11 +198,13 @@ export class DokkanScraper {
     }
 
     /**
-     * Process character links in optimized batches with controlled concurrency
+     * Process character links in optimized batches with enhanced progress tracking
      */
     private async processCharactersBatch(characterLinks: string[]): Promise<Character[]> {
         const allCharacters: Character[] = [];
         const { batchSize } = this.config;
+        const startTime = Date.now();
+        let processedCount = 0;
 
         // Process in batches to manage memory and avoid overwhelming the server
         for (let i = 0; i < characterLinks.length; i += batchSize) {
@@ -213,14 +215,39 @@ export class DokkanScraper {
             await logger.info(`Processing batch ${batchNumber}/${totalBatches} (${batch.length} characters)`);
 
             try {
-                const batchResults = await this.httpClient.fetchBatch(batch);
+                // Enhanced batch processing with progress tracking
+                const batchResults = await this.httpClient.fetchBatch(batch, (completed, total) => {
+                    const batchProgress = Math.round((completed / total) * 100);
+                    if (completed % 5 === 0 || completed === total) { // Log every 5 requests or completion
+                        logger.info(`Batch ${batchNumber} progress: ${completed}/${total} (${batchProgress}%)`);
+                    }
+                });
+
                 const batchCharacters = await this.extractCharactersFromBatch(batchResults);
                 
+                // Add characters and track progress
                 allCharacters.push(...batchCharacters);
+                processedCount += batchCharacters.length;
                 
-                // Small delay between batches to be respectful to the server
+                // Calculate and log performance metrics
+                const elapsed = Date.now() - startTime;
+                const rate = processedCount / (elapsed / 1000);
+                const remaining = characterLinks.length - processedCount;
+                const eta = remaining > 0 ? Math.round(remaining / rate) : 0;
+                
+                await logger.info(`Batch ${batchNumber} completed: ${batchCharacters.length} characters extracted. Total: ${processedCount}/${characterLinks.length} (${Math.round((processedCount/characterLinks.length)*100)}%) Rate: ${rate.toFixed(1)}/s ETA: ${eta}s`);
+                
+                // Adaptive delay based on performance and error rate
                 if (i + batchSize < characterLinks.length) {
-                    await this.delay(500);
+                    const errorRate = this.httpClient.getStats().totalErrors / (processedCount || 1);
+                    const adaptiveDelay = errorRate > 0.1 ? 1000 : 500; // Longer delay if many errors
+                    await this.delay(adaptiveDelay);
+                }
+
+                // Memory management for large datasets
+                if (batchNumber % 10 === 0 && global.gc) {
+                    global.gc();
+                    await logger.info(`Memory cleanup performed after batch ${batchNumber}`);
                 }
 
             } catch (error) {

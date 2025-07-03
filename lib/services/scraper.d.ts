@@ -22,7 +22,7 @@ export declare class DokkanScraper {
      */
     scrapeCategoryWithPagination(category: CategoryUrl): Promise<Character[]>;
     /**
-     * Process character links in optimized batches with controlled concurrency
+     * Process character links in optimized batches with enhanced progress tracking
      */
     private processCharactersBatch;
     /**

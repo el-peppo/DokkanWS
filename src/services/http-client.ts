@@ -3,6 +3,8 @@ import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import { ScrapingConfig, ScrapingError } from '../types/character.js';
 import { logger } from '../utils/logger.js';
+import { CircuitBreaker, CircuitBreakerConfig } from '../utils/circuit-breaker.js';
+import { PerformanceMonitor } from '../utils/performance-monitor.js';
 
 type PLimitFunction = (fn: Function) => Promise<any>;
 
@@ -12,9 +14,22 @@ export class HttpClient {
     private readonly config: ScrapingConfig;
     private readonly errors: ScrapingError[] = [];
     private pLimitModule: any;
+    private circuitBreaker: CircuitBreaker;
+    private performanceMonitor: PerformanceMonitor;
 
     constructor(config: ScrapingConfig) {
         this.config = config;
+
+        // Initialize circuit breaker
+        const circuitConfig: CircuitBreakerConfig = {
+            failureThreshold: 5,           // Open circuit after 5 consecutive failures
+            resetTimeout: 30000,           // Wait 30s before trying again
+            monitoringPeriod: 60000        // Monitor failures over 1 minute
+        };
+        this.circuitBreaker = new CircuitBreaker(circuitConfig);
+
+        // Initialize performance monitor
+        this.performanceMonitor = new PerformanceMonitor();
 
         // Create connection pooling agents
         const httpAgent = new HttpAgent({ 
@@ -60,21 +75,64 @@ export class HttpClient {
     }
 
     /**
-     * Fetch URL with retry logic and concurrency control
+     * Fetch URL with retry logic, timeout handling, and concurrency control
      */
-    async fetchWithRetry(url: string): Promise<string | null> {
+    async fetchWithRetry(url: string, customTimeout?: number): Promise<string | null> {
         if (!this.concurrencyLimit) {
             await this.initialize();
         }
         return this.concurrencyLimit(async () => {
             for (let attempt = 1; attempt <= this.config.maxRetries; attempt++) {
+                const requestStart = Date.now();
                 try {
-                    const response: AxiosResponse<string> = await this.axios.get(url);
-                    return response.data;
+                    // Use circuit breaker to prevent overwhelming a failing service
+                    const response = await this.circuitBreaker.execute(async () => {
+                        const controller = new AbortController();
+                        const timeoutMs = customTimeout || this.config.requestTimeout;
+                        
+                        // Set up timeout
+                        const timeoutId = setTimeout(() => {
+                            controller.abort();
+                        }, timeoutMs);
+
+                        try {
+                            const axiosResponse: AxiosResponse<string> = await this.axios.get(url, {
+                                signal: controller.signal,
+                                timeout: timeoutMs
+                            });
+                            
+                            clearTimeout(timeoutId);
+                            return axiosResponse.data;
+                        } catch (error) {
+                            clearTimeout(timeoutId);
+                            throw error;
+                        }
+                    });
+                    
+                    // Record successful request
+                    const responseTime = Date.now() - requestStart;
+                    this.performanceMonitor.recordRequest(responseTime, true);
+                    
+                    return response;
+                    
                 } catch (error) {
                     const errorMessage = error instanceof Error ? error.message : String(error);
+                    const isTimeout = errorMessage.includes('timeout') || errorMessage.includes('aborted');
+                    const isNetworkError = errorMessage.includes('ECONNRESET') || errorMessage.includes('ENOTFOUND');
+                    const timeoutMs = customTimeout || this.config.requestTimeout;
+                    
+                    // Log different error types
+                    if (isTimeout) {
+                        await logger.warn(`Request timeout (${timeoutMs}ms) for ${url} on attempt ${attempt}`);
+                    } else if (isNetworkError) {
+                        await logger.warn(`Network error for ${url} on attempt ${attempt}: ${errorMessage}`);
+                    }
                     
                     if (attempt === this.config.maxRetries) {
+                        // Record failed request
+                        const responseTime = Date.now() - requestStart;
+                        this.performanceMonitor.recordRequest(responseTime, false);
+                        
                         const scrapingError: ScrapingError = {
                             url,
                             error: errorMessage,
@@ -82,12 +140,17 @@ export class HttpClient {
                             retryAttempt: attempt
                         };
                         this.errors.push(scrapingError);
-                        logger.error(`Failed to fetch ${url} after ${attempt} attempts: ${errorMessage}`);
+                        await logger.error(`Failed to fetch ${url} after ${attempt} attempts: ${errorMessage}`);
                         return null;
                     }
 
-                    logger.warn(`Attempt ${attempt}/${this.config.maxRetries} failed for ${url}: ${errorMessage}`);
-                    await this.delay(this.config.retryDelay * attempt); // Exponential backoff
+                    // Exponential backoff with jitter for better distribution
+                    const baseDelay = this.config.retryDelay * attempt;
+                    const jitter = Math.random() * 1000; // 0-1s random jitter
+                    const delay = baseDelay + jitter;
+                    
+                    await logger.warn(`Attempt ${attempt}/${this.config.maxRetries} failed for ${url}, retrying in ${Math.round(delay)}ms`);
+                    await this.delay(delay);
                 }
             }
             return null;
@@ -95,15 +158,33 @@ export class HttpClient {
     }
 
     /**
-     * Fetch multiple URLs in controlled batches
+     * Fetch multiple URLs in controlled batches with progress tracking
      */
-    async fetchBatch(urls: string[]): Promise<Array<{ url: string; data: string | null }>> {
-        const batchPromises = urls.map(async (url) => ({
-            url,
-            data: await this.fetchWithRetry(url)
-        }));
+    async fetchBatch(urls: string[], progressCallback?: (completed: number, total: number) => void): Promise<Array<{ url: string; data: string | null }>> {
+        let completed = 0;
 
-        return Promise.all(batchPromises);
+        // Process URLs with controlled concurrency to prevent memory issues
+        const promises = urls.map(async (url) => {
+            const data = await this.fetchWithRetry(url);
+            completed++;
+            
+            // Call progress callback if provided
+            if (progressCallback) {
+                progressCallback(completed, urls.length);
+            }
+            
+            return { url, data };
+        });
+
+        // Wait for all requests to complete
+        const batchResults = await Promise.all(promises);
+        
+        // Force garbage collection hint for large batches
+        if (urls.length > 50 && global.gc) {
+            global.gc();
+        }
+        
+        return batchResults;
     }
 
     /**
@@ -121,14 +202,22 @@ export class HttpClient {
     }
 
     /**
-     * Get request statistics
+     * Get comprehensive request statistics
      */
-    getStats(): { successRate: number; totalErrors: number } {
-        const totalRequests = this.errors.length; // This would need tracking for full stats
-        const totalErrors = this.errors.length;
-        const successRate = totalRequests > 0 ? ((totalRequests - totalErrors) / totalRequests) * 100 : 100;
+    getStats(): { successRate: number; totalErrors: number; performance: any; circuitBreaker: any } {
+        const perfMetrics = this.performanceMonitor.getMetrics();
+        const cbStats = this.circuitBreaker.getStats();
         
-        return { successRate, totalErrors };
+        const successRate = perfMetrics.totalRequests > 0 
+            ? (perfMetrics.successfulRequests / perfMetrics.totalRequests) * 100 
+            : 100;
+        
+        return { 
+            successRate, 
+            totalErrors: perfMetrics.failedRequests,
+            performance: perfMetrics,
+            circuitBreaker: cbStats
+        };
     }
 
     /**

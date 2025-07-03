@@ -11,6 +11,7 @@ export declare class DatabaseConnection {
     private config;
     constructor(dbConfig?: Partial<DatabaseConfig>);
     connect(): Promise<void>;
+    isConnected(): boolean;
     disconnect(): Promise<void>;
     getConnection(): mysql.Connection;
     query(sql: string, params?: any[]): Promise<any>;

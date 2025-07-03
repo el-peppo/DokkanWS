@@ -1,15 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { DatabaseService } from '../database-service.js';
 import { CharacterSearchQuery } from '../types.js';
 import { logger } from '../../utils/logger.js';
+import { getSharedDatabaseService } from '../shared-db.js';
 
 const router = Router();
-const dbService = new DatabaseService();
-
-// Initialize database connection
-dbService.connect().catch(error => {
-    logger.error('Failed to connect to database in characters routes:', {}, error);
-});
 
 /**
  * GET /api/characters
@@ -30,7 +24,7 @@ router.get('/', async (req: Request, res: Response) => {
             sortOrder: req.query.sortOrder as 'asc' | 'desc'
         };
 
-        const result = await dbService.searchCharacters(query);
+        const result = await getSharedDatabaseService().searchCharacters(query);
         
         res.json({
             success: true,
@@ -53,7 +47,7 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const character = await dbService.getCharacterById(id);
+        const character = await getSharedDatabaseService().getCharacterById(id);
 
         if (!character) {
             res.status(404).json({
@@ -83,7 +77,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
  */
 router.get('/stats/summary', async (_req: Request, res: Response) => {
     try {
-        const stats = await dbService.getDatabaseStats();
+        const stats = await getSharedDatabaseService().getDatabaseStats();
         
         res.json({
             success: true,

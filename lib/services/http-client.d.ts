@@ -5,19 +5,21 @@ export declare class HttpClient {
     private readonly config;
     private readonly errors;
     private pLimitModule;
+    private circuitBreaker;
+    private performanceMonitor;
     constructor(config: ScrapingConfig);
     /**
      * Initialize the http client (must be called before using)
      */
     initialize(): Promise<void>;
     /**
-     * Fetch URL with retry logic and concurrency control
+     * Fetch URL with retry logic, timeout handling, and concurrency control
      */
-    fetchWithRetry(url: string): Promise<string | null>;
+    fetchWithRetry(url: string, customTimeout?: number): Promise<string | null>;
     /**
-     * Fetch multiple URLs in controlled batches
+     * Fetch multiple URLs in controlled batches with progress tracking
      */
-    fetchBatch(urls: string[]): Promise<Array<{
+    fetchBatch(urls: string[], progressCallback?: (completed: number, total: number) => void): Promise<Array<{
         url: string;
         data: string | null;
     }>>;
@@ -30,11 +32,13 @@ export declare class HttpClient {
      */
     clearErrors(): void;
     /**
-     * Get request statistics
+     * Get comprehensive request statistics
      */
     getStats(): {
         successRate: number;
         totalErrors: number;
+        performance: any;
+        circuitBreaker: any;
     };
     /**
      * Delay utility for retry logic
