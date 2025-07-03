@@ -12,7 +12,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "prestart": "npm run build",
-    "test": "mocha --require ts-node/register 'src/**/*.spec.ts'",
+    "test": "mocha --loader=ts-node/esm 'src/**/*.spec.ts'",
     "test:watch": "npm run test -- --watch",
     "run": "NODE_OPTIONS=\"--disable-warning=DEP0180\" node --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' src/index.ts",
     "run:optimized": "npx ts-node src/index-optimized.ts",

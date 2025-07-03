@@ -39,7 +39,8 @@
       "Bash(pkill:*)",
       "Bash(npm outdated)",
       "Bash(git checkout:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(git branch:*)"
     ],
     "deny": []
   }
