@@ -19,7 +19,8 @@
       "Bash(find:*)",
       "Bash(rg:*)",
       "Bash(BATCH_SIZE=3 node lib/index.js)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)"
     ],
     "deny": []
   }
