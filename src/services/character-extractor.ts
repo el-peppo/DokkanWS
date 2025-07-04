@@ -162,18 +162,42 @@ export class CharacterExtractor {
     }
 
     private static extractFullImageURL(document: Document): string {
+        // Look for artwork images directly on the page
+        const artworkSelectors = [
+            'img[src*="_artwork_apng.png"]',
+            'img[src*="_artwork.png"]',
+            'a[href*="_artwork_apng.png"]',
+            'a[href*="_artwork.png"]'
+        ];
+        
+        for (const selector of artworkSelectors) {
+            const element = DOMParser.querySelector(document, selector);
+            if (element) {
+                const src = DOMParser.extractAttribute(element, 'src', '');
+                const href = DOMParser.extractAttribute(element, 'href', '');
+                if (src !== 'Error') return src;
+                if (href !== 'Error') return href;
+            }
+        }
+        
+        // Fallback: try URL transformation as last resort
         const thumbnailURL = this.extractImageURL(document);
         if (thumbnailURL === 'Error') return 'Error';
         
-        // Convert thumbnail URL to full-size URL by removing 'thumb_'
-        return thumbnailURL.replace('thumb_apng.png', 'apng.png');
+        if (thumbnailURL.includes('_thumb_apng.png')) {
+            return thumbnailURL.replace('_thumb_apng.png', '_artwork_apng.png');
+        } else if (thumbnailURL.includes('_thumb.png')) {
+            return thumbnailURL.replace('_thumb.png', '_artwork.png');
+        }
+        
+        return thumbnailURL;
     }
 
     private static extractSkillByImage(document: Document, imageName: string): string {
         const skillImage = DOMParser.findByImageName(document, imageName);
         const row = DOMParser.findClosest(skillImage, 'tr');
         const nextRow = DOMParser.getNextSibling(row);
-        return DOMParser.extractText(nextRow);
+        return DOMParser.extractTextWithKiSpheres(nextRow);
     }
 
     private static extractLeaderSkill(document: Document): string {
@@ -263,7 +287,7 @@ export class CharacterExtractor {
         const skillImage = DOMParser.findByImageName(document, 'Passive skill.png');
         const row = DOMParser.findClosest(skillImage, 'tr');
         const nextRow = DOMParser.getNextSibling(row);
-        const text = DOMParser.extractText(nextRow);
+        const text = DOMParser.extractTextWithKiSpheres(nextRow);
         return cleanPassiveText(text);
     }
 
@@ -275,7 +299,7 @@ export class CharacterExtractor {
             if (skillImage) {
                 const row = DOMParser.findClosest(skillImage, 'tr');
                 const nextRow = DOMParser.getNextSibling(row);
-                const text = DOMParser.extractText(nextRow, '');
+                const text = DOMParser.extractTextWithKiSpheres(nextRow, '');
                 if (text && text !== 'Error') return cleanPassiveText(text);
             }
         }
@@ -284,7 +308,7 @@ export class CharacterExtractor {
         if (ezaElement) {
             const row = DOMParser.findClosest(ezaElement, 'tr');
             const nextRow = DOMParser.getNextSibling(row);
-            const text = DOMParser.extractText(nextRow, '');
+            const text = DOMParser.extractTextWithKiSpheres(nextRow, '');
             if (text && text !== 'Error') return cleanPassiveText(text);
         }
 
@@ -297,11 +321,11 @@ export class CharacterExtractor {
 
         const row = DOMParser.findClosest(skillImage, 'tr');
         const nextRow = DOMParser.getNextSibling(row);
-        let text = DOMParser.extractText(nextRow, '');
+        let text = DOMParser.extractTextWithKiSpheres(nextRow, '');
         
         if (!text || text === 'Error') {
             const nextNextRow = DOMParser.getNextSibling(nextRow);
-            text = DOMParser.extractText(nextNextRow, '');
+            text = DOMParser.extractTextWithKiSpheres(nextNextRow, '');
         }
         
         return text && text !== 'Error' ? text : undefined;
@@ -614,7 +638,7 @@ export class CharacterExtractor {
         const skillImage = DOMParser.querySelector(document, `${baseSelector} [data-image-name="Passive skill.png"]`);
         const row = DOMParser.findClosest(skillImage, 'tr');
         const nextRow = DOMParser.getNextSibling(row);
-        const text = DOMParser.extractText(nextRow);
+        const text = DOMParser.extractTextWithKiSpheres(nextRow);
         return cleanPassiveText(text);
     }
 
@@ -629,7 +653,7 @@ export class CharacterExtractor {
             if (element) {
                 const row = DOMParser.findClosest(element, 'tr');
                 const nextRow = DOMParser.getNextSibling(row);
-                const text = DOMParser.extractText(nextRow, '');
+                const text = DOMParser.extractTextWithKiSpheres(nextRow, '');
                 if (text && text !== 'Error') return cleanPassiveText(text);
             }
         }
@@ -687,11 +711,35 @@ export class CharacterExtractor {
     }
 
     private static extractTransformationFullImageURL(document: Document, baseSelector: string): string {
+        // Look for artwork images directly in the transformation section
+        const artworkSelectors = [
+            `${baseSelector} img[src*="_artwork_apng.png"]`,
+            `${baseSelector} img[src*="_artwork.png"]`,
+            `${baseSelector} a[href*="_artwork_apng.png"]`,
+            `${baseSelector} a[href*="_artwork.png"]`
+        ];
+        
+        for (const selector of artworkSelectors) {
+            const element = DOMParser.querySelector(document, selector);
+            if (element) {
+                const src = DOMParser.extractAttribute(element, 'src', '');
+                const href = DOMParser.extractAttribute(element, 'href', '');
+                if (src !== 'Error') return src;
+                if (href !== 'Error') return href;
+            }
+        }
+        
+        // Fallback: try URL transformation as last resort
         const thumbnailURL = this.extractTransformationImageURL(document, baseSelector);
         if (thumbnailURL === 'Error') return 'Error';
         
-        // Convert thumbnail URL to full-size URL by removing 'thumb_'
-        return thumbnailURL.replace('thumb_apng.png', 'apng.png');
+        if (thumbnailURL.includes('_thumb_apng.png')) {
+            return thumbnailURL.replace('_thumb_apng.png', '_artwork_apng.png');
+        } else if (thumbnailURL.includes('_thumb.png')) {
+            return thumbnailURL.replace('_thumb.png', '_artwork.png');
+        }
+        
+        return thumbnailURL;
     }
 
     // Standby Skill Extraction Methods
@@ -701,7 +749,7 @@ export class CharacterExtractor {
         if (standbyElement) {
             const row = DOMParser.findClosest(standbyElement, 'tr');
             const nextRow = DOMParser.getNextSibling(row);
-            const text = DOMParser.extractText(nextRow, '');
+            const text = DOMParser.extractTextWithKiSpheres(nextRow, '');
             if (text && text !== 'Error') return text;
         }
 
@@ -714,7 +762,7 @@ export class CharacterExtractor {
             const tables = DOMParser.querySelectorAll(document, 'table');
             if (tables) {
                 for (const table of tables) {
-                    const tableText = DOMParser.extractText(table as Element, '');
+                    const tableText = DOMParser.extractTextWithKiSpheres(table as Element, '');
                     if (tableText.toLowerCase().includes('switch to standby')) {
                         return tableText.trim();
                     }
@@ -823,7 +871,7 @@ export class CharacterExtractor {
             if (skillImage) {
                 const row = DOMParser.findClosest(skillImage, 'tr');
                 const nextRow = DOMParser.getNextSibling(row);
-                const text = DOMParser.extractText(nextRow, '');
+                const text = DOMParser.extractTextWithKiSpheres(nextRow, '');
                 if (text && text !== 'Error') return cleanPassiveText(text);
             }
         }
@@ -832,7 +880,7 @@ export class CharacterExtractor {
         if (sezaElement) {
             const row = DOMParser.findClosest(sezaElement, 'tr');
             const nextRow = DOMParser.getNextSibling(row);
-            const text = DOMParser.extractText(nextRow, '');
+            const text = DOMParser.extractTextWithKiSpheres(nextRow, '');
             if (text && text !== 'Error') return cleanPassiveText(text);
         }
 
@@ -949,7 +997,7 @@ export class CharacterExtractor {
             if (element) {
                 const row = DOMParser.findClosest(element, 'tr');
                 const nextRow = DOMParser.getNextSibling(row);
-                const text = DOMParser.extractText(nextRow, '');
+                const text = DOMParser.extractTextWithKiSpheres(nextRow, '');
                 if (text && text !== 'Error') return cleanPassiveText(text);
             }
         }

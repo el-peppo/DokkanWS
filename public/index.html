@@ -35,21 +35,52 @@
         // Theme Context
         const ThemeContext = createContext();
         
-        // Utility function to format passive skills
+        // Utility function to format passive skills with colored Ki spheres
         function formatPassiveSkill(passiveText) {
             if (!passiveText || passiveText === 'Error') {
                 return passiveText;
+            }
+            
+            // Function to colorize Ki sphere references
+            function colorizeKiSpheres(text) {
+                const kiSphereColors = {
+                    '[PHY]': '#FFA500', // Orange
+                    '[STR]': '#FF0000', // Red  
+                    '[AGL]': '#0000FF', // Blue
+                    '[TEQ]': '#00FF00', // Green
+                    '[INT]': '#800080', // Purple
+                    '[RAINBOW]': 'linear-gradient(45deg, #FF0000, #FFA500, #00FF00, #0000FF, #800080)' // Rainbow gradient
+                };
+                
+                let colorizedText = text;
+                Object.entries(kiSphereColors).forEach(([sphere, color]) => {
+                    const regex = new RegExp(`\\${sphere}`, 'g');
+                    if (sphere === '[RAINBOW]') {
+                        colorizedText = colorizedText.replace(regex, `<span style="background: ${color}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: bold;">${sphere}</span>`);
+                    } else {
+                        colorizedText = colorizedText.replace(regex, `<span style="color: ${color}; font-weight: bold;">${sphere}</span>`);
+                    }
+                });
+                
+                return colorizedText;
             }
             
             // Split by semicolon and create bullet points
             const parts = passiveText.split(';').map(part => part.trim()).filter(part => part.length > 0);
             
             if (parts.length <= 1) {
-                return passiveText; // Return original if no semicolons found
+                // Single part - colorize and return as JSX
+                const colorizedText = colorizeKiSpheres(passiveText);
+                return React.createElement('span', { 
+                    dangerouslySetInnerHTML: { __html: colorizedText } 
+                });
             }
             
             return parts.map((part, index) => 
-                React.createElement('li', { key: index }, part)
+                React.createElement('li', { 
+                    key: index,
+                    dangerouslySetInnerHTML: { __html: colorizeKiSpheres(part) }
+                })
             );
         }
         
@@ -483,7 +514,7 @@
         // Character Modal Component
         function CharacterModal() {
             const { selectedCharacter, setSelectedCharacter } = useApp();
-            const [awakening, setAwakening] = React.useState('base'); // 'base', 'eza', 'seza'
+            const [awakening, setAwakening] = React.useState('base'); // 'base', 'eza', 'seza', 'standby'
             
             if (!selectedCharacter) return null;
             
@@ -492,9 +523,10 @@
                 setAwakening('base');
             };
             
-            // Check if character has EZA/SEZA data
+            // Check if character has EZA/SEZA awakenings and standby skills
             const hasEza = selectedCharacter.eza_leader_skill || selectedCharacter.eza_super_attack || selectedCharacter.eza_passive;
             const hasSeza = selectedCharacter.seza_leader_skill || selectedCharacter.seza_super_attack || selectedCharacter.seza_passive;
+            const hasStandby = selectedCharacter.standby_skill && selectedCharacter.standby_skill !== 'Error';
             
             // Get current skill data based on awakening state
             const getCurrentSkill = (base, eza, seza) => {
@@ -520,23 +552,23 @@
                         <div className="modal-header">
                             <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
                                 <h2>{selectedCharacter.name}</h2>
-                                {(hasEza || hasSeza) && (
+                                {(hasEza || hasSeza || hasStandby) && (
                                     <div style={{display: 'flex', gap: '0.5rem'}}>
-                                        <button 
-                                            onClick={() => setAwakening('base')}
-                                            style={{
-                                                padding: '0.25rem 0.75rem',
-                                                borderRadius: '15px',
-                                                border: 'none',
-                                                background: awakening === 'base' ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
-                                                color: awakening === 'base' ? '#667eea' : 'white',
-                                                fontWeight: '600',
-                                                fontSize: '0.8rem',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            Base
-                                        </button>
+                                    <button 
+                                        onClick={() => setAwakening('base')}
+                                        style={{
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '15px',
+                                            border: 'none',
+                                            background: awakening === 'base' ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                                            color: awakening === 'base' ? '#667eea' : 'white',
+                                            fontWeight: '600',
+                                            fontSize: '0.8rem',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Base
+                                    </button>
                                         {hasEza && (
                                             <button 
                                                 onClick={() => setAwakening('eza')}
@@ -571,6 +603,23 @@
                                                 SEZA
                                             </button>
                                         )}
+                                        {hasStandby && (
+                                            <button 
+                                                onClick={() => setAwakening('standby')}
+                                                style={{
+                                                    padding: '0.25rem 0.75rem',
+                                                    borderRadius: '15px',
+                                                    border: 'none',
+                                                    background: awakening === 'standby' ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                                                    color: awakening === 'standby' ? '#667eea' : 'white',
+                                                    fontWeight: '600',
+                                                    fontSize: '0.8rem',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                Standby
+                                            </button>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -581,8 +630,14 @@
                         
                         <div className="modal-body">
                             <div className="character-details">
+                                {/* Background full character art */}
+                                {selectedCharacter.full_image_url && selectedCharacter.full_image_url !== 'Error' && (
+                                    <img src={selectedCharacter.full_image_url} alt={selectedCharacter.name} className="full-character-art" />
+                                )}
+                                
+                                {/* Small thumbnail image */}
                                 {selectedCharacter.image_url && selectedCharacter.image_url !== 'Error' && (
-                                    <img src={selectedCharacter.image_url} alt={selectedCharacter.name} />
+                                    <img src={selectedCharacter.image_url} alt={selectedCharacter.name} className="character-thumbnail" />
                                 )}
                                 
                                 <div className="details-grid">
@@ -648,6 +703,31 @@
                                     </div>
                                 </div>
                                 
+                                {/* Show content based on selected tab */}
+                                {awakening === 'standby' ? (
+                                    // Standby Skills Content
+                                    hasStandby && (
+                                        <div className="skill-section">
+                                            <h4>🔄 Standby Skill</h4>
+                                            <div className="skill-content">
+                                                {(() => {
+                                                    const formatted = formatPassiveSkill(selectedCharacter.standby_skill);
+                                                    if (Array.isArray(formatted)) {
+                                                        return React.createElement('ul', { className: 'passive-bullets' }, formatted);
+                                                    }
+                                                    return React.createElement('p', null, formatted);
+                                                })()}
+                                            </div>
+                                            {selectedCharacter.standby_skill_condition && selectedCharacter.standby_skill_condition !== 'Error' && (
+                                                <div style={{marginTop: '0.5rem', padding: '0.5rem', background: '#e8f4f8', borderRadius: '6px', fontSize: '0.9rem'}}>
+                                                    <strong>Condition:</strong> {selectedCharacter.standby_skill_condition}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
+                                ) : (
+                                    // Base/EZA/SEZA Skills Content
+                                    <>
                                 {(() => {
                                     const leaderSkill = getCurrentSkill(
                                         selectedCharacter.leader_skill,
@@ -657,7 +737,15 @@
                                     return leaderSkill && leaderSkill !== 'Error' && (
                                         <div className="skill-section">
                                             <h4>Leader Skill {awakening !== 'base' && `(${awakening.toUpperCase()})`}</h4>
-                                            <p>{leaderSkill}</p>
+                                            <div className="skill-content">
+                                                {(() => {
+                                                    const formatted = formatPassiveSkill(leaderSkill);
+                                                    if (Array.isArray(formatted)) {
+                                                        return React.createElement('ul', { className: 'passive-bullets' }, formatted);
+                                                    }
+                                                    return React.createElement('p', null, formatted);
+                                                })()}
+                                            </div>
                                         </div>
                                     );
                                 })()}
@@ -671,7 +759,15 @@
                                     return superAttack && superAttack !== 'Error' && (
                                         <div className="skill-section">
                                             <h4>Super Attack {awakening !== 'base' && `(${awakening.toUpperCase()})`}</h4>
-                                            <p>{superAttack}</p>
+                                            <div className="skill-content">
+                                                {(() => {
+                                                    const formatted = formatPassiveSkill(superAttack);
+                                                    if (Array.isArray(formatted)) {
+                                                        return React.createElement('ul', { className: 'passive-bullets' }, formatted);
+                                                    }
+                                                    return React.createElement('p', null, formatted);
+                                                })()}
+                                            </div>
                                         </div>
                                     );
                                 })()}
@@ -685,7 +781,15 @@
                                     return ultraSuperAttack && ultraSuperAttack !== 'Error' && (
                                         <div className="skill-section">
                                             <h4>Ultra Super Attack {awakening !== 'base' && `(${awakening.toUpperCase()})`}</h4>
-                                            <p>{ultraSuperAttack}</p>
+                                            <div className="skill-content">
+                                                {(() => {
+                                                    const formatted = formatPassiveSkill(ultraSuperAttack);
+                                                    if (Array.isArray(formatted)) {
+                                                        return React.createElement('ul', { className: 'passive-bullets' }, formatted);
+                                                    }
+                                                    return React.createElement('p', null, formatted);
+                                                })()}
+                                            </div>
                                         </div>
                                     );
                                 })()}
@@ -721,22 +825,19 @@
                                     return activeSkill && activeSkill !== 'Error' && (
                                         <div className="skill-section">
                                             <h4>Active Skill {awakening !== 'base' && `(${awakening.toUpperCase()})`}</h4>
-                                            <p>{activeSkill}</p>
+                                            <div className="skill-content">
+                                                {(() => {
+                                                    const formatted = formatPassiveSkill(activeSkill);
+                                                    if (Array.isArray(formatted)) {
+                                                        return React.createElement('ul', { className: 'passive-bullets' }, formatted);
+                                                    }
+                                                    return React.createElement('p', null, formatted);
+                                                })()}
+                                            </div>
                                         </div>
                                     );
                                 })()}
-                                
-                                {/* Standby Skills */}
-                                {selectedCharacter.standby_skill && selectedCharacter.standby_skill !== 'Error' && (
-                                    <div className="skill-section">
-                                        <h4>🔄 Standby Skill</h4>
-                                        <p>{selectedCharacter.standby_skill}</p>
-                                        {selectedCharacter.standby_skill_condition && selectedCharacter.standby_skill_condition !== 'Error' && (
-                                            <div style={{marginTop: '0.5rem', padding: '0.5rem', background: '#e8f4f8', borderRadius: '6px', fontSize: '0.9rem'}}>
-                                                <strong>Condition:</strong> {selectedCharacter.standby_skill_condition}
-                                            </div>
-                                        )}
-                                    </div>
+                                    </>
                                 )}
                                 
                                 {/* Transformation Section */}
@@ -761,7 +862,18 @@
                                                                 })()}
                                                             </div>
                                                         )}
-                                                        {transform.super_attack && <p><strong>Super Attack:</strong> {transform.super_attack}</p>}
+                                                        {transform.super_attack && (
+                                                            <div>
+                                                                <strong>Super Attack:</strong>
+                                                                {(() => {
+                                                                    const formatted = formatPassiveSkill(transform.super_attack);
+                                                                    if (Array.isArray(formatted)) {
+                                                                        return React.createElement('ul', { className: 'passive-bullets' }, formatted);
+                                                                    }
+                                                                    return React.createElement('span', null, ` ${formatted}`);
+                                                                })()}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             ))}

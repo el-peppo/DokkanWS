@@ -20,9 +20,17 @@ export declare class DOMParser {
      */
     static querySelectorAll(element: Document | Element | null, selector: string): NodeListOf<Element> | null;
     /**
+     * Replace Ki sphere icons with text equivalents
+     */
+    private static replaceKiSphereIcons;
+    /**
      * Safe text extraction with fallback
      */
     static extractText(element: Element | null, fallback?: string): string;
+    /**
+     * Enhanced text extraction that replaces Ki sphere icons with text equivalents
+     */
+    static extractTextWithKiSpheres(element: Element | null, fallback?: string): string;
     /**
      * Safe attribute extraction with fallback
      */

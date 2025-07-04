@@ -95,7 +95,8 @@ export class DatabaseService {
                     c.eza_leader_skill, c.eza_super_attack, c.eza_ultra_super_attack, c.eza_passive,
                     c.eza_active_skill, c.eza_active_skill_condition,
                     c.seza_leader_skill, c.seza_super_attack, c.seza_ultra_super_attack, c.seza_passive,
-                    c.seza_active_skill, c.seza_active_skill_condition
+                    c.seza_active_skill, c.seza_active_skill_condition,
+                    c.standby_skill, c.standby_skill_condition
                 FROM characters c 
                 ${whereClause}
                 ${orderClause}

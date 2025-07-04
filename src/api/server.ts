@@ -7,6 +7,7 @@ import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { logger } from '../utils/logger.js';
 import { ScrapeService } from './scrape-service.js';
+import { initializeDatabaseService } from './shared-db.js';
 
 // Import routes
 import charactersRouter from './routes/characters.js';
@@ -127,6 +128,9 @@ export class APIServer {
 
     async start(): Promise<void> {
         try {
+            // Initialize database service
+            await initializeDatabaseService();
+            
             // Initialize scrape service
             await this.scrapeService.connect();
 

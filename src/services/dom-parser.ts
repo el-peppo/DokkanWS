@@ -128,10 +128,39 @@ export class DOMParser {
     }
 
     /**
+     * Replace Ki sphere icons with text equivalents
+     */
+    private static replaceKiSphereIcons(html: string): string {
+        return html
+            .replace(/<span typeof="mw:File"><a href="\/wiki\/Category:PHY"[^>]*>.*?<\/a><\/span>/g, '[PHY]')
+            .replace(/<span typeof="mw:File"><a href="\/wiki\/Category:AGL"[^>]*>.*?<\/a><\/span>/g, '[AGL]')
+            .replace(/<span typeof="mw:File"><a href="\/wiki\/Category:STR"[^>]*>.*?<\/a><\/span>/g, '[STR]')
+            .replace(/<span typeof="mw:File"><a href="\/wiki\/Category:TEQ"[^>]*>.*?<\/a><\/span>/g, '[TEQ]')
+            .replace(/<span typeof="mw:File"><a href="\/wiki\/Category:INT"[^>]*>.*?<\/a><\/span>/g, '[INT]')
+            .replace(/<span typeof="mw:File"><a href="\/wiki\/Category:Rainbow"[^>]*>.*?<\/a><\/span>/g, '[RAINBOW]');
+    }
+
+    /**
      * Safe text extraction with fallback
      */
     static extractText(element: Element | null, fallback: string = 'Error'): string {
         return element?.textContent?.trim() ?? fallback;
+    }
+
+    /**
+     * Enhanced text extraction that replaces Ki sphere icons with text equivalents
+     */
+    static extractTextWithKiSpheres(element: Element | null, fallback: string = 'Error'): string {
+        if (!element) return fallback;
+        
+        const html = element.innerHTML;
+        const processedHtml = this.replaceKiSphereIcons(html);
+        
+        // Create a temporary element to extract clean text
+        const tempDiv = element.ownerDocument!.createElement('div');
+        tempDiv.innerHTML = processedHtml;
+        
+        return tempDiv.textContent?.trim() ?? fallback;
     }
 
     /**
