@@ -119,22 +119,27 @@ export class DokkanScraper {
      * Scrape characters from a category with dynamic pagination support
      */
     async scrapeCategoryWithPagination(category: CategoryUrl): Promise<Character[]> {
-        await logger.info(`Starting category: ${category}`);
+        await logger.info(`Starting category with pagination: ${category}`);
         
         const allCharacters: Character[] = [];
         const processedUrls = new Set<string>();
         const urlsToProcess = [`${DOKKAN_BASE_URL}/wiki/Category:${category}`];
         let progressInitialized = false;
+        let pageNumber = 1;
+        
+        await logger.info(`Initial URL queue: ${urlsToProcess[0]}`);
         
         while (urlsToProcess.length > 0) {
             const currentUrl = urlsToProcess.shift()!;
             
             // Skip if already processed
             if (processedUrls.has(currentUrl)) {
+                await logger.debug(`Skipping already processed URL: ${currentUrl}`);
                 continue;
             }
             
             processedUrls.add(currentUrl);
+            await logger.info(`Processing page ${pageNumber} for category ${category}: ${currentUrl}`);
             
             try {
                 const categoryHtml = await this.httpClient.fetchWithRetry(currentUrl);
@@ -152,17 +157,27 @@ export class DokkanScraper {
 
                 // Extract character links from current page
                 const characterLinks = await DOMParser.extractCharacterLinks(categoryDocument, DOKKAN_BASE_URL);
-                await logger.info(`Found ${characterLinks.length} character links in category ${category} (page: ${currentUrl})`);
+                await logger.info(`Page ${pageNumber}: Found ${characterLinks.length} character links`);
 
                 // Look for pagination URLs to add to queue
+                await logger.info(`Looking for pagination links on page ${pageNumber}...`);
                 const paginationUrls = await DOMParser.extractPaginationUrls(categoryDocument, currentUrl);
+                await logger.info(`Page ${pageNumber}: Found ${paginationUrls.length} potential pagination URLs`);
                 
                 // Add new pagination URLs to the queue
+                let newUrlsAdded = 0;
                 for (const paginationUrl of paginationUrls) {
                     if (!processedUrls.has(paginationUrl) && !urlsToProcess.includes(paginationUrl)) {
                         urlsToProcess.push(paginationUrl);
-                        await logger.info(`Found pagination URL: ${paginationUrl}`);
+                        newUrlsAdded++;
+                        await logger.info(`Found new pagination URL: ${paginationUrl}`);
                     }
+                }
+                
+                if (newUrlsAdded > 0) {
+                    await logger.info(`Added ${newUrlsAdded} new pagination URLs. Queue size: ${urlsToProcess.length}`);
+                } else if (paginationUrls.length > 0) {
+                    await logger.info(`All ${paginationUrls.length} pagination URLs were already processed or in queue`);
                 }
 
                 // Initialize progress tracking once we know the scope
@@ -184,7 +199,16 @@ export class DokkanScraper {
 
                 // If no characters found and no pagination, we're done
                 if (characterLinks.length === 0 && paginationUrls.length === 0) {
+                    await logger.info(`No more data found on page ${pageNumber}, finishing category ${category}`);
                     break;
+                }
+                
+                pageNumber++;
+                
+                // Debug: Log queue status before next iteration
+                await logger.info(`End of page ${pageNumber - 1} processing. URLs in queue: ${urlsToProcess.length}, Processed URLs: ${processedUrls.size}`);
+                if (urlsToProcess.length > 0) {
+                    await logger.info(`Next URL to process: ${urlsToProcess[0]}`);
                 }
 
             } catch (error) {

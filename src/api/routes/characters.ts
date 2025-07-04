@@ -24,7 +24,8 @@ router.get('/', async (req: Request, res: Response) => {
             sortOrder: req.query.sortOrder as 'asc' | 'desc'
         };
 
-        const result = await getSharedDatabaseService().searchCharacters(query);
+        const dbService = getSharedDatabaseService();
+        const result = await dbService.searchCharacters(query);
         
         res.json({
             success: true,
@@ -47,7 +48,8 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const character = await getSharedDatabaseService().getCharacterById(id);
+        const dbService = getSharedDatabaseService();
+        const character = await dbService.getCharacterById(id);
 
         if (!character) {
             res.status(404).json({
@@ -77,7 +79,8 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
  */
 router.get('/stats/summary', async (_req: Request, res: Response) => {
     try {
-        const stats = await getSharedDatabaseService().getDatabaseStats();
+        const dbService = getSharedDatabaseService();
+        const stats = await dbService.getDatabaseStats();
         
         res.json({
             success: true,

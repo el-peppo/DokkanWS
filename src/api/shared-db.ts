@@ -6,9 +6,9 @@ let sharedDbService: DatabaseService | null = null;
 export function getSharedDatabaseService(): DatabaseService {
     if (!sharedDbService) {
         sharedDbService = new DatabaseService();
-        // Connect on first access
-        sharedDbService.connect().catch(() => {
-            // Ignore connection errors - graceful degradation is handled in DatabaseService
+        // Connect asynchronously without awaiting
+        sharedDbService.connect().catch((error) => {
+            console.warn('Database connection failed, API will work with limited functionality:', error);
         });
     }
     return sharedDbService;

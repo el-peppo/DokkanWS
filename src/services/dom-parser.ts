@@ -61,11 +61,21 @@ export class DOMParser {
                         paginationUrls.push(href);
                     }
                 }
+                
+                // Also look for "next 200" style links
+                const lowerText = text.toLowerCase();
+                if ((lowerText.includes('next') || lowerText.includes('200')) && 
+                    href.includes(`Category:${categoryName}`)) {
+                    if (!paginationUrls.includes(href)) {
+                        paginationUrls.push(href);
+                        candidateLinks.push({text, href});
+                    }
+                }
             }
             
             // Debug logging
             if (candidateLinks.length > 0) {
-                await logger.info(`Found ${candidateLinks.length} pagination candidates for ${categoryName}:`, candidateLinks.slice(0, 5));
+                await logger.info(`Found ${candidateLinks.length} pagination candidates for ${categoryName}:`, candidateLinks.slice(0, 10));
             }
 
             // Make URLs absolute and filter out current URL

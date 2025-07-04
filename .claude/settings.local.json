@@ -45,7 +45,11 @@
       "Bash(jq:*)",
       "Bash(strace:*)",
       "Bash(sudo chown:*)",
-      "Bash(sudo systemctl:*)"
+      "Bash(sudo systemctl:*)",
+      "Bash(systemctl:*)",
+      "Bash(env)",
+      "Bash(NODE_OPTIONS=\"--disable-warning=DEP0180\" node --import 'data:text/javascript,import { register } from \"\"\"\"node:module\"\"\"\"; import { pathToFileURL } from \"\"\"\"node:url\"\"\"\"; register(\"\"\"\"ts-node/esm\"\"\"\", pathToFileURL(\"\"\"\"./\"\"\"\"));' test-sr-pagination.ts)",
+      "Bash(NODE_OPTIONS=\"--disable-warning=DEP0180\" node --import 'data:text/javascript,import { register } from \"\"\"\"node:module\"\"\"\"; import { pathToFileURL } from \"\"\"\"node:url\"\"\"\"; register(\"\"\"\"ts-node/esm\"\"\"\", pathToFileURL(\"\"\"\"./\"\"\"\"));' test-sr-pagination.ts)"
     ],
     "deny": []
   }

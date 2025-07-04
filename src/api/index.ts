@@ -1,6 +1,17 @@
 import { logger } from '../utils/logger.js';
 import { APIServer } from './server.js';
 
+// Global error handlers
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    process.exit(1);
+});
+
 async function startAPIServer() {
     try {
         const port = process.env.API_PORT ? parseInt(process.env.API_PORT) : 3001;

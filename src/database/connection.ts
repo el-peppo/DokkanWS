@@ -32,7 +32,7 @@ export class DatabaseConnection {
             this.connection = await mysql.createConnection(this.config);
             await logger.info('Connected to MySQL database');
         } catch (error) {
-            await logger.warn('MySQL database connection failed, continuing without database features');
+            await logger.warn('MySQL database connection failed:', error as Error);
             this.connection = null;
             // Don't throw - allow operation without database
         }

@@ -157,8 +157,9 @@ export class DokkanScraperApp {
  */
 function parseArgs(): { category?: CategoryUrl } {
     const args = process.argv.slice(2);
-    const categoryIndex = args.findIndex(arg => arg === '--category');
     
+    // Check for --category flag
+    const categoryIndex = args.findIndex(arg => arg === '--category');
     if (categoryIndex !== -1 && categoryIndex + 1 < args.length) {
         const category = args[categoryIndex + 1] as CategoryUrl;
         if (BASE_CATEGORY_URLS.includes(category)) {
@@ -167,6 +168,11 @@ function parseArgs(): { category?: CategoryUrl } {
             console.error(`Invalid category: ${category}. Valid categories: ${BASE_CATEGORY_URLS.join(', ')}`);
             process.exit(1);
         }
+    }
+    
+    // Also support direct category name as first argument (e.g., npm run run SR)
+    if (args.length > 0 && BASE_CATEGORY_URLS.includes(args[0] as CategoryUrl)) {
+        return { category: args[0] as CategoryUrl };
     }
     
     return {};
