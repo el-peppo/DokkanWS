@@ -6,87 +6,24 @@ export declare class CharacterExtractor {
      */
     static extractCharacterData(source: DOMSource): Promise<Character | null>;
     /**
-     * Extract character name with enhanced parsing
+     * Extract character quote (if available)
      */
-    private static extractName;
+    static extractQuote(source: DOMSource): Promise<string>;
     /**
-     * Extract character title with enhanced parsing
+     * Extract transformation data (placeholder for now)
      */
-    private static extractTitle;
-    /**
-     * Extract max level with EZA support (120 -> 140)
-     */
-    private static extractMaxLevel;
-    /**
-     * Extract max SA level with enhanced EZA detection
-     */
-    private static extractMaxSALevel;
-    /**
-     * Extract character rarity with enhanced detection
-     */
-    private static extractRarity;
-    /**
-     * Extract character class (Super/Extreme)
-     */
-    private static extractClass;
-    /**
-     * Extract character type with enhanced detection
-     */
-    private static extractType;
-    /**
-     * Extract character cost (historical data)
-     */
-    private static extractCost;
-    /**
-     * Extract character ID
-     */
-    private static extractId;
-    /**
-     * Extract character image URL (thumbnail)
-     */
-    private static extractImageURL;
-    /**
-     * Extract full-size character image URL
-     */
-    private static extractFullImageURL;
-    /**
-     * Extract leader skill with enhanced parsing
-     */
-    private static extractLeaderSkill;
-    /**
-     * Extract EZA leader skill
-     */
-    private static extractEZALeaderSkill;
-    /**
-     * Extract SEZA leader skill
-     */
-    private static extractSEZALeaderSkill;
-    private static extractSuperAttack;
-    private static extractEZASuperAttack;
-    private static extractSEZASuperAttack;
-    private static extractUltraSuperAttack;
-    private static extractEZAUltraSuperAttack;
-    private static extractSEZAUltraSuperAttack;
-    private static extractPassive;
-    private static extractEZAPassive;
-    private static extractSEZAPassive;
-    private static extractActiveSkill;
-    private static extractActiveSkillCondition;
-    private static extractEZAActiveSkill;
-    private static extractEZAActiveSkillCondition;
-    private static extractSEZAActiveSkill;
-    private static extractSEZAActiveSkillCondition;
-    private static extractStandbySkill;
-    private static extractStandbySkillCondition;
-    private static extractTransformationCondition;
-    private static extractLinks;
-    private static extractCategories;
-    private static extractKiMeter;
-    private static extractBaseStat;
-    private static extractKiMultiplier;
-    private static extractKi12Multiplier;
-    private static extractKi18Multiplier;
-    private static extractKi24Multiplier;
     private static extractTransformations;
+    /**
+     * Check if character has EZA
+     */
+    static hasEZA(source: DOMSource): Promise<boolean>;
+    /**
+     * Check if character has SEZA
+     */
+    static hasSEZA(source: DOMSource): Promise<boolean>;
+    /**
+     * Check if character is LR (Legendary Rare)
+     */
+    static isLR(source: DOMSource): Promise<boolean>;
 }
 //# sourceMappingURL=character-extractor.d.ts.map

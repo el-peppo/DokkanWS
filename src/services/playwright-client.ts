@@ -231,7 +231,7 @@ export class PlaywrightClient {
     /**
      * Compare page visually with baseline screenshot
      */
-    async compareVisualRegression(page: Page, testName: string, threshold: number = 0.2): Promise<{ match: boolean; filename: string }> {
+    async compareVisualRegression(page: Page, testName: string, _threshold: number = 0.2): Promise<{ match: boolean; filename: string }> {
         const filename = await this.takeRegressionScreenshot(page, testName);
         
         // For now, just return the filename

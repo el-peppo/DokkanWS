@@ -1,4 +1,4 @@
-import { deepEqual, equal } from "assert";
+import { equal } from "assert";
 import { it, before, describe, after } from "mocha";
 import { CharacterExtractor } from "./character-extractor.js";
 import { PlaywrightClient } from "./playwright-client.js";

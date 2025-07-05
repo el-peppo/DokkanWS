@@ -65,6 +65,17 @@ export declare class PlaywrightClient {
      */
     takeScreenshot(page: Page, filename: string): Promise<void>;
     /**
+     * Take screenshot for visual regression testing
+     */
+    takeRegressionScreenshot(page: Page, testName: string): Promise<string>;
+    /**
+     * Compare page visually with baseline screenshot
+     */
+    compareVisualRegression(page: Page, testName: string, _threshold?: number): Promise<{
+        match: boolean;
+        filename: string;
+    }>;
+    /**
      * Wait for element on page
      */
     waitForElement(page: Page, selector: string, timeout?: number): Promise<boolean>;

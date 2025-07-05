@@ -51,7 +51,10 @@
       "Bash(NODE_OPTIONS=\"--disable-warning=DEP0180\" node --import 'data:text/javascript,import { register } from \"\"\"\"node:module\"\"\"\"; import { pathToFileURL } from \"\"\"\"node:url\"\"\"\"; register(\"\"\"\"ts-node/esm\"\"\"\", pathToFileURL(\"\"\"\"./\"\"\"\"));' test-sr-pagination.ts)",
       "Bash(NODE_OPTIONS=\"--disable-warning=DEP0180\" node --import 'data:text/javascript,import { register } from \"\"\"\"node:module\"\"\"\"; import { pathToFileURL } from \"\"\"\"node:url\"\"\"\"; register(\"\"\"\"ts-node/esm\"\"\"\", pathToFileURL(\"\"\"\"./\"\"\"\"));' test-sr-pagination.ts)",
       "Bash(cat:*)",
-      "WebFetch(domain:static.wikia.nocookie.net)"
+      "WebFetch(domain:static.wikia.nocookie.net)",
+      "Bash(mv:*)",
+      "Bash(git restore:*)",
+      "Bash(npx playwright:*)"
     ],
     "deny": []
   }
