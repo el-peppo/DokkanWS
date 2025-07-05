@@ -54,7 +54,9 @@
       "WebFetch(domain:static.wikia.nocookie.net)",
       "Bash(mv:*)",
       "Bash(git restore:*)",
-      "Bash(npx playwright:*)"
+      "Bash(npx playwright:*)",
+      "Bash(npm view:*)",
+      "Bash(tsx:*)"
     ],
     "deny": []
   }
