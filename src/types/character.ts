@@ -76,24 +76,31 @@ export enum Rarities {
 }
 
 export interface Transformation {
-    transformedID: string;
-    transformedName: string;
-    transformedClass: Classes;
-    transformedType: Types;
-    transformedSuperAttack: string;
+    name: string;
+    condition: string;
+    passive: string;
+    superAttack: string;
+    kiMultiplier: string;
+    links: string[];
+    categories: string[];
+    transformedID?: string;
+    transformedName?: string;
+    transformedClass?: Classes;
+    transformedType?: Types;
+    transformedSuperAttack?: string;
     transformedEZASuperAttack?: string;
     transformedSEZASuperAttack?: string;
     transformedUltraSuperAttack?: string;
     transformedEZAUltraSuperAttack?: string;
     transformedSEZAUltraSuperAttack?: string;
-    transformedPassive: string;
+    transformedPassive?: string;
     transformedEZAPassive?: string;
     transformedSEZAPassive?: string;
     transformedActiveSkill?: string;
     transformedActiveSkillCondition?: string;
-    transformedLinks: string[];
-    transformedImageURL: string;
-    transformedFullImageURL: string;
+    transformedLinks?: string[];
+    transformedImageURL?: string;
+    transformedFullImageURL?: string;
 }
 
 export interface ScrapingConfig {

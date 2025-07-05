@@ -10,7 +10,7 @@ export declare class CharacterExtractor {
      */
     static extractQuote(source: DOMSource): Promise<string>;
     /**
-     * Extract transformation data (placeholder for now)
+     * Extract transformation data using comprehensive Dragon Ball Dokkan Battle mechanics
      */
     private static extractTransformations;
     /**
