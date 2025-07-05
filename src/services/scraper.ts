@@ -1,18 +1,19 @@
 import { Character, ScrapingConfig, ScrapingResult } from '../types/character.js';
 import { DOKKAN_BASE_URL, BASE_CATEGORY_URLS, CategoryUrl } from '../config/scraper.config.js';
-import { HttpClient } from './http-client.js';
-import { DOMParser } from './dom-parser.js';
+import { PlaywrightClient } from './playwright-client.js';
+import { DOMParserAdapter } from './dom-parser-adapter.js';
 import { CharacterExtractor } from './character-extractor.js';
 import { logger, ScrapingLogger } from '../utils/logger.js';
+import { Page } from 'playwright';
 
 export class DokkanScraper {
-    private readonly httpClient: HttpClient;
+    private readonly playwrightClient: PlaywrightClient;
     private readonly config: ScrapingConfig;
     private readonly scrapingLogger: ScrapingLogger;
 
     constructor(config: ScrapingConfig) {
         this.config = config;
-        this.httpClient = new HttpClient(config);
+        this.playwrightClient = new PlaywrightClient(config);
         this.scrapingLogger = new ScrapingLogger();
     }
 
@@ -20,7 +21,13 @@ export class DokkanScraper {
      * Initialize the scraper (must be called before scraping)
      */
     async initialize(): Promise<void> {
-        await this.httpClient.initialize();
+        await this.playwrightClient.initialize();
+        
+        // Initialize the DOM parser adapter with Playwright support
+        const playwrightParser = (this.playwrightClient as any).playwrightParser;
+        await DOMParserAdapter.initializePlaywright(playwrightParser);
+        
+        await logger.info('Scraper initialized with Playwright');
     }
 
     /**
@@ -54,7 +61,7 @@ export class DokkanScraper {
                     totalCharacters: validCharacters.length,
                     processingTime,
                     categoriesProcessed: [...BASE_CATEGORY_URLS],
-                    errors: this.httpClient.getErrors()
+                    errors: this.playwrightClient.getErrors()
                 }
             };
 
@@ -65,7 +72,7 @@ export class DokkanScraper {
             await logger.error('Critical error during scraping:', {}, error as Error);
             throw error;
         } finally {
-            this.httpClient.destroy();
+            this.playwrightClient.destroy();
         }
     }
 
@@ -77,24 +84,19 @@ export class DokkanScraper {
         
         try {
             const categoryUrl = `${DOKKAN_BASE_URL}/wiki/Category:${category}`;
-            const categoryHtml = await this.httpClient.fetchWithRetry(categoryUrl);
+            const categoryPage = await this.playwrightClient.fetchWithRetry(categoryUrl);
             
-            if (!categoryHtml) {
+            if (!categoryPage) {
                 await logger.error(`Failed to fetch category page: ${category}`);
                 return [];
             }
 
-            const categoryDocument = await DOMParser.parseHTML(categoryHtml);
-            if (!categoryDocument) {
-                await logger.error(`Failed to parse category page: ${category}`);
-                return [];
-            }
-
-            const characterLinks = await DOMParser.extractCharacterLinks(categoryDocument, DOKKAN_BASE_URL);
+            const characterLinks = await DOMParserAdapter.extractCharacterLinks(categoryPage, DOKKAN_BASE_URL);
             await logger.info(`Found ${characterLinks.length} character links in category ${category}`);
 
             if (characterLinks.length === 0) {
                 await logger.warn(`No character links found in category: ${category}`);
+                await DOMParserAdapter.closePage(categoryPage);
                 return [];
             }
 
@@ -107,6 +109,8 @@ export class DokkanScraper {
             await this.scrapingLogger.logProgress(category, characters.length);
             await logger.info(`Completed category ${category}: ${characters.length} characters processed`);
 
+            // Clean up the category page
+            await DOMParserAdapter.closePage(categoryPage);
             return characters;
 
         } catch (error) {
@@ -142,26 +146,20 @@ export class DokkanScraper {
             await logger.info(`Processing page ${pageNumber} for category ${category}: ${currentUrl}`);
             
             try {
-                const categoryHtml = await this.httpClient.fetchWithRetry(currentUrl);
+                const categoryPage = await this.playwrightClient.fetchWithRetry(currentUrl);
                 
-                if (!categoryHtml) {
+                if (!categoryPage) {
                     await logger.error(`Failed to fetch category page: ${currentUrl}`);
                     continue;
                 }
 
-                const categoryDocument = await DOMParser.parseHTML(categoryHtml);
-                if (!categoryDocument) {
-                    await logger.error(`Failed to parse category page: ${currentUrl}`);
-                    continue;
-                }
-
                 // Extract character links from current page
-                const characterLinks = await DOMParser.extractCharacterLinks(categoryDocument, DOKKAN_BASE_URL);
+                const characterLinks = await DOMParserAdapter.extractCharacterLinks(categoryPage, DOKKAN_BASE_URL);
                 await logger.info(`Page ${pageNumber}: Found ${characterLinks.length} character links`);
 
                 // Look for pagination URLs to add to queue
                 await logger.info(`Looking for pagination links on page ${pageNumber}...`);
-                const paginationUrls = await DOMParser.extractPaginationUrls(categoryDocument, currentUrl);
+                const paginationUrls = await DOMParserAdapter.extractPaginationUrls(categoryPage, currentUrl);
                 await logger.info(`Page ${pageNumber}: Found ${paginationUrls.length} potential pagination URLs`);
                 
                 // Add new pagination URLs to the queue
@@ -200,6 +198,7 @@ export class DokkanScraper {
                 // If no characters found and no pagination, we're done
                 if (characterLinks.length === 0 && paginationUrls.length === 0) {
                     await logger.info(`No more data found on page ${pageNumber}, finishing category ${category}`);
+                    await DOMParserAdapter.closePage(categoryPage);
                     break;
                 }
                 
@@ -210,6 +209,9 @@ export class DokkanScraper {
                 if (urlsToProcess.length > 0) {
                     await logger.info(`Next URL to process: ${urlsToProcess[0]}`);
                 }
+
+                // Clean up the category page before processing next page
+                await DOMParserAdapter.closePage(categoryPage);
 
             } catch (error) {
                 await logger.error(`Error processing category page ${currentUrl}:`, {}, error as Error);
@@ -239,8 +241,8 @@ export class DokkanScraper {
             await logger.info(`Processing batch ${batchNumber}/${totalBatches} (${batch.length} characters)`);
 
             try {
-                // Enhanced batch processing with progress tracking
-                const batchResults = await this.httpClient.fetchBatch(batch, (completed, total) => {
+                // Enhanced batch processing with progress tracking using Playwright
+                const batchResults = await this.playwrightClient.fetchBatch(batch, (completed, total) => {
                     const batchProgress = Math.round((completed / total) * 100);
                     if (completed % 5 === 0 || completed === total) { // Log every 5 requests or completion
                         logger.info(`Batch ${batchNumber} progress: ${completed}/${total} (${batchProgress}%)`);
@@ -263,7 +265,7 @@ export class DokkanScraper {
                 
                 // Adaptive delay based on performance and error rate
                 if (i + batchSize < characterLinks.length) {
-                    const errorRate = this.httpClient.getStats().totalErrors / (processedCount || 1);
+                    const errorRate = this.playwrightClient.getStats().totalErrors / (processedCount || 1);
                     const adaptiveDelay = errorRate > 0.1 ? 1000 : 500; // Longer delay if many errors
                     await this.delay(adaptiveDelay);
                 }
@@ -284,30 +286,29 @@ export class DokkanScraper {
     }
 
     /**
-     * Extract character data from batch fetch results
+     * Extract character data from batch fetch results using Playwright
      */
-    private async extractCharactersFromBatch(batchResults: Array<{ url: string; data: string | null }>): Promise<Character[]> {
+    private async extractCharactersFromBatch(batchResults: Array<{ url: string; page: Page | null }>): Promise<Character[]> {
         const characters: Character[] = [];
 
-        for (const { url, data } of batchResults) {
-            if (!data) {
-                await logger.warn(`No data received for URL: ${url}`);
+        for (const { url, page } of batchResults) {
+            if (!page) {
+                await logger.warn(`No page received for URL: ${url}`);
                 continue;
             }
 
             try {
-                const document = await DOMParser.parseHTML(data);
-                if (!document) {
-                    await logger.warn(`Failed to parse HTML for URL: ${url}`);
-                    continue;
-                }
-
-                const character = await CharacterExtractor.extractCharacterData(document);
+                const character = await CharacterExtractor.extractCharacterData(page);
                 if (character) {
                     characters.push(character);
                 } else {
                     await logger.warn(`Failed to extract character data from URL: ${url}`);
+                    // Take screenshot for debugging
+                    await DOMParserAdapter.takeScreenshot(page, `failed-extraction-${Date.now()}.png`);
                 }
+
+                // Clean up the page
+                await DOMParserAdapter.closePage(page);
 
             } catch (error) {
                 await logger.error(`Error extracting character from ${url}:`, {}, error as Error);
@@ -320,15 +321,22 @@ export class DokkanScraper {
     /**
      * Get scraping statistics
      */
-    getStats(): { successRate: number; totalErrors: number } {
-        return this.httpClient.getStats();
+    getStats(): { successRate: number; totalErrors: number; activePagesCount: number; totalRequestsCount: number; averageResponseTime: number } {
+        return this.playwrightClient.getStats();
+    }
+
+    /**
+     * Get detailed browser statistics
+     */
+    async getBrowserStats(): Promise<{ contextsCount: number; pagesCount: number }> {
+        return await this.playwrightClient.getBrowserStats();
     }
 
     /**
      * Clear accumulated errors
      */
     clearErrors(): void {
-        this.httpClient.clearErrors();
+        this.playwrightClient.clearErrors();
     }
 
     /**
@@ -342,6 +350,6 @@ export class DokkanScraper {
      * Cleanup resources
      */
     destroy(): void {
-        this.httpClient.destroy();
+        this.playwrightClient.destroy();
     }
 }

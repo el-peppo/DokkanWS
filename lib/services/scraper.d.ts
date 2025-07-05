@@ -1,7 +1,7 @@
 import { Character, ScrapingConfig, ScrapingResult } from '../types/character.js';
 import { CategoryUrl } from '../config/scraper.config.js';
 export declare class DokkanScraper {
-    private readonly httpClient;
+    private readonly playwrightClient;
     private readonly config;
     private readonly scrapingLogger;
     constructor(config: ScrapingConfig);
@@ -26,7 +26,7 @@ export declare class DokkanScraper {
      */
     private processCharactersBatch;
     /**
-     * Extract character data from batch fetch results
+     * Extract character data from batch fetch results using Playwright
      */
     private extractCharactersFromBatch;
     /**
@@ -35,7 +35,17 @@ export declare class DokkanScraper {
     getStats(): {
         successRate: number;
         totalErrors: number;
+        activePagesCount: number;
+        totalRequestsCount: number;
+        averageResponseTime: number;
     };
+    /**
+     * Get detailed browser statistics
+     */
+    getBrowserStats(): Promise<{
+        contextsCount: number;
+        pagesCount: number;
+    }>;
     /**
      * Clear accumulated errors
      */

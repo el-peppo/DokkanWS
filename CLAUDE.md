@@ -15,7 +15,7 @@ npm run run
 # Run with Web UI and API server (port 3000)
 npm run api
 
-# Run all tests (193 test cases covering extraction accuracy)
+# Run all tests (comprehensive test suite with Playwright integration)
 npm test
 
 # Build TypeScript to JavaScript 
@@ -32,11 +32,15 @@ npm run import-db all    # Import all JSON files
 # Linting
 npm run lint            # Check code style
 npm run lint:fix        # Auto-fix linting issues
+
+# Playwright browser management
+npx playwright install  # Install browser binaries (run once)
 ```
 
-**Note**: Uses modern Node.js ESM loader syntax (Node.js 18+). The deprecated `--experimental-loader` has been replaced with `--import` syntax. Dependencies updated to latest versions including jsdom v26, mocha v11, and eslint v9.
+**Note**: Now uses Playwright for robust browser automation instead of JSDOM. Requires Node.js 18+ with modern ESM loader syntax. Dependencies include playwright, mocha v11, and eslint v9.
 
-Output files are saved to `./data/{YYYYMMDD}DokkanCharacterData.json`
+Output files are saved to `./data/{YYYYMMDD}DokkanCharacterData.json`  
+Screenshots are saved to `./screenshots/` for debugging and visual regression testing.
 
 ## Optional MySQL Integration
 
@@ -89,7 +93,7 @@ The project includes a modern web interface for real-time monitoring:
 
 **scraper.ts** - Main scraping engine with two key functions:
 - `getDokkanData(rarity)`: Scrapes character lists by rarity (N/R/SR/SSR/UR/LR) from category pages
-- `extractCharacterData(document)`: Extracts detailed character data from individual character pages using complex DOM selectors
+- `extractCharacterData(page)`: Extracts detailed character data from individual character pages using Playwright locators
 
 **character.ts** - Type definitions:
 - `Character` interface: 40+ fields including stats, skills, transformations
@@ -101,30 +105,56 @@ The project includes a modern web interface for real-time monitoring:
 - Combines all rarity data sets (N, R, SR, SSR, UR, LR)
 - Saves consolidated JSON output with date stamps
 
+### Playwright Integration
+
+**playwright-client.ts** - High-level client for browser automation:
+- Manages browser contexts and concurrency limits
+- Implements retry logic with exponential backoff
+- Provides performance monitoring and error tracking
+- Handles visual regression testing with screenshots
+
+**playwright-parser.ts** - Core browser automation engine:
+- Manages browser contexts pool for concurrent scraping
+- Implements request blocking for 60%+ performance improvement
+- Provides screenshot capabilities for debugging
+- Handles Ki sphere icon replacement and text extraction
+
+**character-extractor.ts** - Specialized extraction logic:
+- Game mechanics-focused extraction (EZA, SEZA, transformations)
+- Async methods compatible with Playwright Page objects
+- Enhanced support for complex Dokkan Battle mechanics
+
 ### Data Extraction Strategy
 
-The scraper uses JSDOM to parse HTML and employs specific CSS selectors to extract:
-- Basic stats from structured tables
+The scraper uses Playwright browser automation to extract:
+- Basic stats from structured tables with wait strategies
 - Skills from labeled sections (Leader Skill, Super Attack, Passive, etc.)
-- EZA variations when available
+- EZA/SEZA variations with level 140/SA 15 detection
 - Multi-step transformations with full character data for each form
 - Links, categories, and Ki meter information
+- Ki multipliers for 12/18/24 Ki thresholds (LR units)
 
-**Text Cleaning**: The `cleanPassiveText()` function normalizes passive skill descriptions by removing wiki formatting artifacts like "Basic effect(s)-" prefixes.
+**Performance Optimizations**:
+- Request blocking for images, CSS, fonts, and ads (60%+ speed improvement)
+- Browser context pooling for concurrent scraping
+- Screenshot debugging capabilities
+- Visual regression testing
 
 ### Test Architecture
 
-**scraper.spec.ts** contains 193 comprehensive tests organized by data type:
+**scraper.spec.ts** contains comprehensive tests with Playwright integration:
 - Tests cover 6 different character archetypes (standard, EZA, transform, multitransform, etc.)
-- Each test validates extraction accuracy against known character data
+- Each test validates extraction accuracy against real character pages
+- Visual regression tests capture screenshots for layout verification
 - Tests ensure the scraper adapts to website changes (SA levels, category names, text formatting)
 
 ### Key Implementation Details
 
-- **Error Handling**: DOM selectors return 'Error' when elements aren't found, allowing graceful degradation
+- **Error Handling**: Playwright locators with proper timeout handling and graceful degradation
 - **Pagination**: UR characters require multiple requests due to wiki pagination (`?from=` parameter)
-- **Concurrent Processing**: Character pages are scraped in parallel using `Promise.all()`
+- **Concurrent Processing**: Character pages are scraped in parallel using browser context pooling
 - **Website Evolution**: The scraper accounts for ongoing changes to the Dokkan wiki structure and content
+- **Anti-Detection**: User agent rotation, request delays, and resource blocking to avoid detection
 
 When working with this codebase, prioritize maintaining test coverage as the wiki structure evolves. The comprehensive test suite serves as both validation and documentation of expected data formats.
 
